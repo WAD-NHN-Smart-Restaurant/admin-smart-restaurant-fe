@@ -1,6 +1,21 @@
 ## Deployed URL:
+
 https://ia07-react-authentication.vercel.app
 
+Sample login account:
+
+```bash
+[
+    email: "john@example.com",
+    password: "password123",
+    role: "admin",
+  },
+  {
+    email: "jane@example.com",
+    password: "password123",
+  },
+]
+```
 
 ## Getting Started
 

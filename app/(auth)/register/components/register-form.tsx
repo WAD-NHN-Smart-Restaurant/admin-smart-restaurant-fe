@@ -133,7 +133,6 @@ export const RegisterForm = () => {
                     type="password"
                     placeholder="Confirm your password"
                     disabled={isRegisterLoading}
-                    className="pr-10"
                   />
                 </FormControl>
                 <FormMessage />
