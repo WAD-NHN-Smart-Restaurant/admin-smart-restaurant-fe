@@ -9,9 +9,9 @@ import {
   logoutApi,
   getCurrentUser,
   checkAuthStatus,
-} from "../api/auth";
-import { tokenManager } from "../api/api";
-import { User, LoginFormData, RegisterFormData } from "../schema/auth-schema";
+} from "@/api/auth-api";
+import { tokenManager } from "@/lib/api-request";
+import { User, LoginFormData, RegisterFormData } from "@/schema/auth-schema";
 import { AUTH_PATHS, PROTECTED_PATHS } from "@/data/path";
 
 // Auth context type
@@ -77,7 +77,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     },
     onError: (error: Error) => {
       console.error("Login failed:", error.message);
-      // Error handling can be done in the component
     },
   });
 
@@ -90,7 +89,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user });
 
       // Redirect to dashboard
-      router.push(PROTECTED_PATHS.DASHBOARD);
+      router.push(AUTH_PATHS.LOGIN);
     },
     onError: (error: Error) => {
       console.error("Registration failed:", error.message);

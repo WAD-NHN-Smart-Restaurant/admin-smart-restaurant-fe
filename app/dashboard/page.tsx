@@ -8,7 +8,7 @@ import {
 } from "./components/dashboard-components";
 import { Activity, Users, ShoppingCart, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function DashboardPage() {
   return (
@@ -18,6 +18,7 @@ export default function DashboardPage() {
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Welcome Section */}
+          <Link href="/posts">Go to Dashboard</Link>
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-foreground mb-2">
               Welcome to Your Dashboard
@@ -56,7 +57,7 @@ export default function DashboardPage() {
           </div>
 
           {/* User Info Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
             <div className="lg:col-span-1">
               <UserInfoCard />
             </div>
@@ -88,50 +89,6 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
             </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="mt-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Button
-                  variant="outline"
-                  className="h-auto p-4 text-left flex flex-col items-start hover:bg-accent"
-                >
-                  <h3 className="font-medium text-foreground mb-1">
-                    View Profile
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Manage your account settings
-                  </p>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="h-auto p-4 text-left flex flex-col items-start hover:bg-accent"
-                >
-                  <h3 className="font-medium text-foreground mb-1">
-                    New Order
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Create a new order
-                  </p>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="h-auto p-4 text-left flex flex-col items-start hover:bg-accent"
-                >
-                  <h3 className="font-medium text-foreground mb-1">
-                    View Reports
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Check your analytics
-                  </p>
-                </Button>
-              </CardContent>
-            </Card>
           </div>
         </main>
       </div>

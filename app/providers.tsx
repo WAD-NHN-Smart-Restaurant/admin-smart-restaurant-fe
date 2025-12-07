@@ -8,7 +8,7 @@ import {
   QueryClientProvider,
 } from "@tanstack/react-query";
 import { AuthProvider } from "@/context/auth-context";
-
+import { ToastContainer } from "react-toastify";
 function makeQueryClient() {
   return new QueryClient({
     defaultOptions: {
@@ -47,6 +47,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>{children}</AuthProvider>
+      <ToastContainer />
     </QueryClientProvider>
   );
 }

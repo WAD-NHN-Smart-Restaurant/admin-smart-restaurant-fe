@@ -11,11 +11,7 @@ export const DashboardHeader: React.FC = () => {
   const { user } = useUser();
 
   const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
+    await logout();
   };
 
   return (
@@ -25,7 +21,6 @@ export const DashboardHeader: React.FC = () => {
           <div className="flex items-center">
             <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
           </div>
-
           <div className="flex items-center space-x-4">
             {user && (
               <div className="hidden md:flex items-center space-x-2 text-sm text-muted-foreground">
@@ -58,7 +53,7 @@ export const UserInfoCard: React.FC = () => {
   }
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <CardTitle>User Information</CardTitle>
       </CardHeader>
@@ -109,7 +104,7 @@ export const StatsCard: React.FC<{
 }> = ({ title, value, description, icon }) => {
   return (
     <Card>
-      <CardContent className="pt-6">
+      <CardContent>
         <div className="flex items-center justify-between mb-2">
           <p className="text-sm font-medium text-muted-foreground">{title}</p>
           {icon && <div className="text-muted-foreground">{icon}</div>}

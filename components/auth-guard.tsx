@@ -2,8 +2,8 @@
 
 import React, { ReactNode, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useAuthCheck } from "../context/auth-context";
-import { AUTH_PATHS, isProtectedPath, isAuthPath, PATHS } from "../data/path";
+import { useAuthCheck } from "@/context/auth-context";
+import { AUTH_PATHS, isProtectedPath, isAuthPath, PATHS } from "@/data/path";
 import Link from "next/link";
 
 interface AuthGuardProps {

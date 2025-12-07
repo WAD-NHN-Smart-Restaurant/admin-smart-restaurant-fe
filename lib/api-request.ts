@@ -4,8 +4,8 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 import Cookies from "js-cookie";
-import { refreshTokenResponseSchema } from "../schema/auth-schema";
-import { API_PATHS, AUTH_PATHS } from "../data/path";
+import { refreshTokenResponseSchema } from "@/schema/auth-schema";
+import { API_PATHS, AUTH_PATHS } from "@/data/path";
 
 // Extend InternalAxiosRequestConfig to include _retry flag
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
@@ -39,8 +39,6 @@ export const tokenManager = {
   },
 
   getAccessToken: (): string | null => {
-    console.log(Cookies.get(ACCESS_TOKEN_KEY));
-    console.log(Cookies.get(REFRESH_TOKEN_KEY));
     return Cookies.get(ACCESS_TOKEN_KEY) || null;
   },
 

@@ -17,7 +17,7 @@ export default function Home() {
           />
 
           <h1 className="max-w-2xl text-5xl leading-tight font-bold tracking-tight text-foreground">
-            Fast Restaurant Authentication System
+            Authentication System
           </h1>
 
           <p className="max-w-xl text-lg leading-8 text-muted-foreground">

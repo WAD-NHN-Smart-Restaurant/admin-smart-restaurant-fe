@@ -31,7 +31,6 @@ export const LoginForm = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     await login(data);
-    form.reset();
   };
 
   return (
@@ -43,13 +42,6 @@ export const LoginForm = () => {
           Sign in to your account to continue
         </p>
       </div>
-
-      {/* Error Message */}
-      {loginError && (
-        <div className="p-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
-          {loginError.message || "Login failed. Please try again."}
-        </div>
-      )}
 
       {/* Form */}
       <Form {...form}>
@@ -64,7 +56,6 @@ export const LoginForm = () => {
                 <FormControl>
                   <Input
                     {...field}
-                    type="email"
                     placeholder="Enter your email"
                     disabled={isLoginLoading}
                   />
@@ -105,18 +96,17 @@ export const LoginForm = () => {
               "Sign In"
             )}
           </Button>
+
+          {loginError && (
+            <FormMessage className="p-4 bg-red-50 border border-red-200 rounded-md dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
+              {loginError.message}
+            </FormMessage>
+          )}
         </form>
       </Form>
 
       {/* Footer */}
       <div className="text-center space-y-4">
-        <a
-          href="/forgot-password"
-          className="text-sm text-primary hover:text-primary/80 underline"
-        >
-          Forgot your password?
-        </a>
-
         <div className="text-sm text-muted-foreground">
           Don&apos;t have an account?{" "}
           <Button
