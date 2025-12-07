@@ -6,6 +6,7 @@ import axios, {
 import Cookies from "js-cookie";
 import { refreshTokenResponseSchema } from "@/schema/auth-schema";
 import { API_PATHS, AUTH_PATHS } from "@/data/path";
+import { toast } from "react-toastify";
 
 // Extend InternalAxiosRequestConfig to include _retry flag
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
@@ -198,9 +199,12 @@ const handleAuthFailure = () => {
     // Clear any auth-related data from other storage
     localStorage.clear();
     sessionStorage.clear();
+    toast.error("Session expired. Please log in again.");
 
     // Redirect to login page
-    window.location.href = AUTH_PATHS.LOGIN;
+    setTimeout(() => {
+      window.location.href = AUTH_PATHS.LOGIN;
+    }, 2500);
   }
 };
 

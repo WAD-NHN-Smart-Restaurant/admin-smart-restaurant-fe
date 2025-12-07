@@ -73,6 +73,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user });
 
       // Redirect to dashboard
+      router.refresh();
       router.push(PROTECTED_PATHS.DASHBOARD);
     },
     onError: (error: Error) => {
