@@ -16,18 +16,6 @@ export const truncate = (str: string, length: number): string => {
   return str.length > length ? `${str.substring(0, length)}...` : str;
 };
 
-// Validation helpers
-export const isValidEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
-
-export const isStrongPassword = (password: string): boolean => {
-  // At least 8 characters, 1 uppercase, 1 lowercase, 1 number
-  const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-  return strongPasswordRegex.test(password);
-};
-
 // Error message helpers
 export const getErrorMessage = (error: unknown): string => {
   if (error instanceof Error) return error.message;

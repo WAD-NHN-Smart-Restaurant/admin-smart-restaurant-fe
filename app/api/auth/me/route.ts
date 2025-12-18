@@ -90,8 +90,7 @@ export async function GET(request: NextRequest) {
       },
       { status: 200 },
     );
-  } catch (error) {
-    console.error("Get user error:", error);
+  } catch (_error) {
     return NextResponse.json(
       {
         success: false,

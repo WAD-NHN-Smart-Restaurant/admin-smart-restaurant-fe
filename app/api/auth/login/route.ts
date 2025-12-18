@@ -93,8 +93,7 @@ export async function POST(request: NextRequest) {
     });
 
     return response;
-  } catch (error) {
-    console.error("Login error:", error);
+  } catch (_error) {
     return NextResponse.json(
       {
         success: false,

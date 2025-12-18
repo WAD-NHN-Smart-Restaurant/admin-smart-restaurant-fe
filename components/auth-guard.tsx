@@ -3,8 +3,9 @@
 import React, { ReactNode, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthCheck } from "@/context/auth-context";
-import { AUTH_PATHS, isProtectedPath, isAuthPath, PATHS } from "@/data/path";
+import { PATHS } from "@/data/path";
 import Link from "next/link";
+import { isAuthPath, isProtectedPath } from "@/helpers/utils";
 
 interface AuthGuardProps {
   children: ReactNode;
@@ -25,13 +26,13 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
 
     // If user is not authenticated and trying to access protected route
     if (isUnauthenticated && isCurrentPathProtected) {
-      router.push(AUTH_PATHS.LOGIN);
+      router.push(PATHS.LOGIN);
       return;
     }
 
     // If user is authenticated and trying to access auth pages (login, register)
     if (isAuthenticated && isCurrentPathAuth) {
-      router.push(PATHS.DASHBOARD);
+      router.push(PATHS.TABLES.INDEX);
       return;
     }
   }, [isAuthenticated, isLoading, isUnauthenticated, pathname, router]);
@@ -84,7 +85,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
             You need to be logged in to access this page.
           </p>
           <Link
-            href={AUTH_PATHS.LOGIN}
+            href={PATHS.LOGIN}
             className="inline-block px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
           >
             Go to Login
@@ -107,7 +108,7 @@ export const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
 
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
-      router.push(PATHS.DASHBOARD);
+      router.push(PATHS.TABLES.INDEX);
     }
   }, [isAuthenticated, isLoading, router]);
 

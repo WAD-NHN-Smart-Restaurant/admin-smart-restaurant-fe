@@ -65,12 +65,3 @@ export const apiErrorSchema = z.object({
   message: z.string(),
   errors: z.array(z.string()).optional(),
 });
-
-// Type exports
-export type LoginFormData = z.infer<typeof loginSchema>;
-export type RegisterFormData = z.infer<typeof registerSchema>;
-export type AuthTokens = z.infer<typeof authTokenSchema>;
-export type User = z.infer<typeof userSchema>;
-export type LoginResponse = z.infer<typeof loginResponseSchema>;
-export type RefreshTokenResponse = z.infer<typeof refreshTokenResponseSchema>;
-export type ApiError = z.infer<typeof apiErrorSchema>;

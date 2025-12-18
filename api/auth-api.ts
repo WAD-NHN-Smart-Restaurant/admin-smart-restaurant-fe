@@ -4,31 +4,40 @@ import {
   RegisterFormData,
   LoginResponse,
   User,
-  loginResponseSchema,
-  userSchema,
-} from "@/schema/auth-schema";
-import { API_PATHS } from "@/data/path";
+} from "@/types/auth-type";
+import { loginResponseSchema, userSchema } from "@/schema/auth-schema";
+import { ApiResponse } from "@/types/api-type";
 
-// Login API function
+const AUTH_API = {
+  LOGIN: "/auth/login",
+  REGISTER: "/auth/register",
+  LOGOUT: "/auth/logout",
+  REFRESH_TOKEN: "/auth/refresh",
+  ME: "/auth/me",
+};
+
 export const loginApi = async (
   credentials: LoginFormData,
 ): Promise<LoginResponse> => {
   try {
-    const response = await api.post(API_PATHS.AUTH.LOGIN, credentials);
-    const result = loginResponseSchema.parse(response.data);
-
-    return result;
+    const response = await api.post<LoginFormData, LoginResponse>(
+      AUTH_API.LOGIN,
+      credentials,
+    );
+    return response.data;
   } catch (error: unknown) {
     throw error;
   }
 };
 
-// Register API function
 export const registerApi = async (
   userData: RegisterFormData,
 ): Promise<LoginResponse> => {
   try {
-    const response = await api.post(API_PATHS.AUTH.REGISTER, userData);
+    const response = await api.post<RegisterFormData, LoginResponse>(
+      AUTH_API.REGISTER,
+      userData,
+    );
     const result = loginResponseSchema.parse(response.data);
 
     return result;
@@ -37,7 +46,6 @@ export const registerApi = async (
   }
 };
 
-// Logout API function
 export const logoutApi = async (): Promise<void> => {
   try {
     const refreshToken = tokenManager.getRefreshToken();
@@ -45,7 +53,9 @@ export const logoutApi = async (): Promise<void> => {
     if (refreshToken) {
       // Call logout endpoint to invalidate tokens on server
       // The backend will clear the cookies via Set-Cookie
-      await api.post(API_PATHS.AUTH.LOGOUT, { refreshToken });
+      await api.post<{ refreshToken: string }, void>(AUTH_API.LOGOUT, {
+        refreshToken,
+      });
     }
   } catch (error) {
     console.error("Server logout error:", error);
@@ -58,7 +68,7 @@ export const logoutApi = async (): Promise<void> => {
 // Get current user data
 export const getCurrentUser = async (): Promise<User> => {
   try {
-    const response = await api.get(API_PATHS.AUTH.ME);
+    const response = await api.get<ApiResponse<User>>(AUTH_API.ME);
     const result = userSchema.parse(response.data.data);
     return result;
   } catch (error: unknown) {

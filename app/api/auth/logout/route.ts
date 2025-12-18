@@ -38,8 +38,7 @@ export async function POST(request: NextRequest) {
     response.cookies.delete("refreshToken");
 
     return response;
-  } catch (error) {
-    console.error("Logout error:", error);
+  } catch (_error) {
     return NextResponse.json(
       {
         success: false,

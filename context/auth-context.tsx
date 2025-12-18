@@ -1,8 +1,10 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, ReactNode } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useSafeQuery } from "@/hooks/use-safe-query";
+import { useSafeMutation } from "@/hooks/use-safe-mutation";
 import {
   loginApi,
   registerApi,
@@ -11,8 +13,8 @@ import {
   checkAuthStatus,
 } from "@/api/auth-api";
 import { tokenManager } from "@/lib/api-request";
-import { User, LoginFormData, RegisterFormData } from "@/schema/auth-schema";
-import { AUTH_PATHS, PROTECTED_PATHS } from "@/data/path";
+import { AUTH_PATHS, PATHS } from "@/data/path";
+import { LoginFormData, RegisterFormData, User } from "@/types/auth-type";
 
 // Auth context type
 interface AuthContextType {
@@ -48,25 +50,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const queryClient = useQueryClient();
 
   // Check authentication status
-  const { data: isAuthenticated = false, isLoading: isAuthLoading } = useQuery({
-    queryKey: AUTH_QUERY_KEYS.status,
-    queryFn: checkAuthStatus,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: false,
-  });
+  const { data: isAuthenticated = false, isLoading: isAuthLoading } =
+    useSafeQuery(AUTH_QUERY_KEYS.status, checkAuthStatus, {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: false,
+      hideErrorSnackbar: true, // Silent auth check
+    });
 
   // Get current user
-  const { data: user = null, isLoading: isUserLoading } = useQuery({
-    queryKey: AUTH_QUERY_KEYS.user,
-    queryFn: getCurrentUser,
-    enabled: isAuthenticated,
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    retry: false,
-  });
+  const { data: user = null, isLoading: isUserLoading } = useSafeQuery(
+    AUTH_QUERY_KEYS.user,
+    getCurrentUser,
+    {
+      enabled: isAuthenticated,
+      staleTime: 10 * 60 * 1000, // 10 minutes
+      retry: false,
+      hideErrorSnackbar: true, // Silent user fetch
+    },
+  );
 
   // Login mutation
-  const loginMutation = useMutation({
-    mutationFn: loginApi,
+  const loginMutation = useSafeMutation(loginApi, {
+    successMessage: "Login successful!",
+    errorMessage: "Login failed. Please check your credentials.",
     onSuccess: async () => {
       // Invalidate and refetch auth queries
       await queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.status });
@@ -74,33 +80,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Redirect to dashboard
       router.refresh();
-      router.push(PROTECTED_PATHS.DASHBOARD);
-    },
-    onError: (error: Error) => {
-      console.error("Login failed:", error.message);
+      router.push(PATHS.TABLES.INDEX);
     },
   });
 
   // Register mutation
-  const registerMutation = useMutation({
-    mutationFn: registerApi,
+  const registerMutation = useSafeMutation(registerApi, {
+    successMessage: "Registration successful! Please login.",
+    errorMessage: "Registration failed. Please try again.",
     onSuccess: async () => {
       // Invalidate and refetch auth queries
       await queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.status });
       await queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user });
 
-      // Redirect to dashboard
+      // Redirect to login
       router.push(AUTH_PATHS.LOGIN);
-    },
-    onError: (error: Error) => {
-      console.error("Registration failed:", error.message);
-      // Error handling can be done in the component
     },
   });
 
   // Logout mutation
-  const logoutMutation = useMutation({
-    mutationFn: logoutApi,
+  const logoutMutation = useSafeMutation(logoutApi, {
+    successMessage: "Logged out successfully",
+    hideErrorSnackbar: true, // Handle error silently
     onSuccess: async () => {
       // Clear all cached data
       queryClient.clear();
@@ -108,8 +109,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Redirect to login
       router.push(AUTH_PATHS.LOGIN);
     },
-    onError: (error: Error) => {
-      console.error("Logout error:", error.message);
+    onError: () => {
       // Even if logout fails on server, clear local data and redirect
       queryClient.clear();
       router.push(AUTH_PATHS.LOGIN);
@@ -148,8 +148,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoginLoading: loginMutation.isPending,
     isRegisterLoading: registerMutation.isPending,
     isLogoutLoading: logoutMutation.isPending,
-    loginError: loginMutation.error,
-    registerError: registerMutation.error,
+    loginError: loginMutation.error as Error | null,
+    registerError: registerMutation.error as Error | null,
   };
 
   return (
@@ -174,16 +174,5 @@ export const useAuthCheck = () => {
     isAuthenticated,
     isLoading,
     isUnauthenticated: !isAuthenticated && !isLoading,
-  };
-};
-
-// Hook for user data
-export const useUser = () => {
-  const { user, isLoading } = useAuth();
-
-  return {
-    user,
-    isLoading,
-    hasUser: !!user,
   };
 };

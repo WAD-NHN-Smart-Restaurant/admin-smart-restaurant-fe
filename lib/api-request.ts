@@ -2,10 +2,11 @@ import axios, {
   AxiosError,
   AxiosResponse,
   InternalAxiosRequestConfig,
+  AxiosRequestConfig,
 } from "axios";
 import Cookies from "js-cookie";
 import { refreshTokenResponseSchema } from "@/schema/auth-schema";
-import { API_PATHS, AUTH_PATHS } from "@/data/path";
+import { AUTH_PATHS } from "@/data/path";
 import { toast } from "react-toastify";
 
 // Extend InternalAxiosRequestConfig to include _retry flag
@@ -18,7 +19,7 @@ const ACCESS_TOKEN_KEY = "accessToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
 
 // Create axios instance
-const api = axios.create({
+const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
   timeout: 10000,
   headers: {
@@ -72,7 +73,7 @@ let isRefreshing = false;
 let refreshPromise: Promise<string | null> | null = null;
 
 // Request interceptor - Add access token to requests
-api.interceptors.request.use(
+axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = tokenManager.getAccessToken();
     if (token) {
@@ -86,7 +87,7 @@ api.interceptors.request.use(
 );
 
 // Response interceptor - Handle token refresh
-api.interceptors.response.use(
+axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => {
     return response;
   },
@@ -113,7 +114,7 @@ api.interceptors.response.use(
           const newToken = await refreshPromise;
           if (newToken) {
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
-            return api.request(originalRequest);
+            return axiosInstance.request(originalRequest);
           }
         } catch (refreshError) {
           return Promise.reject(refreshError);
@@ -129,7 +130,7 @@ api.interceptors.response.use(
           const newToken = await refreshPromise;
           if (newToken) {
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
-            return api.request(originalRequest);
+            return axiosInstance.request(originalRequest);
           }
         } catch (refreshError) {
           // Refresh failed, redirect to login
@@ -163,7 +164,7 @@ const refreshAccessToken = async (): Promise<string | null> => {
     }
 
     const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}${API_PATHS.AUTH.REFRESH_TOKEN}`,
+      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/auth/refresh`,
       { refreshToken },
       {
         headers: { "Content-Type": "application/json" },
@@ -208,5 +209,46 @@ const handleAuthFailure = () => {
   }
 };
 
-// Export configured axios instance
+// Type-safe API wrapper
+const api = {
+  get: <TResponse = unknown>(
+    url: string,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse<TResponse>> => {
+    return axiosInstance.get<TResponse>(url, config);
+  },
+
+  post: <TRequest = unknown, TResponse = unknown>(
+    url: string,
+    data?: TRequest,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse<TResponse>> => {
+    return axiosInstance.post<TResponse>(url, data, config);
+  },
+
+  put: <TRequest = unknown, TResponse = unknown>(
+    url: string,
+    data?: TRequest,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse<TResponse>> => {
+    return axiosInstance.put<TResponse>(url, data, config);
+  },
+
+  patch: <TRequest = unknown, TResponse = unknown>(
+    url: string,
+    data?: TRequest,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse<TResponse>> => {
+    return axiosInstance.patch<TResponse>(url, data, config);
+  },
+
+  delete: <TResponse = unknown>(
+    url: string,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse<TResponse>> => {
+    return axiosInstance.delete<TResponse>(url, config);
+  },
+};
+
+// Export typed API instance
 export default api;

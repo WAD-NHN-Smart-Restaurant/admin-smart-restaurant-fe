@@ -88,8 +88,7 @@ export async function POST(request: NextRequest) {
     });
 
     return response;
-  } catch (error) {
-    console.error("Token refresh error:", error);
+  } catch (_error) {
     return NextResponse.json(
       {
         success: false,
