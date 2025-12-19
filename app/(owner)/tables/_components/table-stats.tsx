@@ -4,7 +4,7 @@ import { CheckCircle, LayoutGrid, Users, QrCode } from "lucide-react";
 interface TableStatsProps {
   stats: {
     total: number;
-    active: number;
+    available: number;
     occupied: number;
     withQR: number;
   };
@@ -36,10 +36,10 @@ export function TableStats({ stats }: TableStatsProps) {
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <p className="text-sm font-medium text-muted-foreground">
-                Active
+                Available
               </p>
               <p className="text-3xl font-bold text-foreground mt-2">
-                {stats.active}
+                {stats.available}
               </p>
             </div>
             <div className="w-14 h-14 rounded-xl bg-blue-100 flex items-center justify-center">

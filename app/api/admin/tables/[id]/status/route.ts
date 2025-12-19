@@ -10,12 +10,12 @@ export async function PATCH(
     const body = await request.json();
     const { status } = body;
 
-    if (!status || !["active", "inactive", "occupied"].includes(status)) {
+    if (!status || !["available", "inactive", "occupied"].includes(status)) {
       return NextResponse.json(
         {
           success: false,
           message:
-            "Invalid status. Must be 'active', 'inactive', or 'occupied'",
+            "Invalid status. Must be 'available', 'inactive', or 'occupied'",
         },
         { status: 400 },
       );
@@ -38,7 +38,7 @@ export async function PATCH(
     return NextResponse.json({
       success: true,
       data: mockTables[tableIndex],
-      message: `Table ${status === "active" ? "activated" : "deactivated"} successfully`,
+      message: `Table ${status === "available" ? "activated" : "deactivated"} successfully`,
     });
   } catch (_error) {
     return NextResponse.json(

@@ -45,7 +45,7 @@ export function TableCard({
   isGeneratingQR,
 }: TableCardProps) {
   const getStatusStyles = () => {
-    if (table.status === "active") {
+    if (table.status === "available") {
       return "border-green-400 bg-green-50/30";
     }
     if (table.status === "occupied") {
@@ -55,7 +55,7 @@ export function TableCard({
   };
 
   const getStatusBadge = () => {
-    if (table.status === "active") {
+    if (table.status === "available") {
       return (
         <Badge className="mt-1 font-semibold flex items-center gap-1 bg-transparent border-green-600 text-black">
           <CheckCircle className="h-3 w-3" />
@@ -107,7 +107,7 @@ export function TableCard({
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onToggleStatus(table)}>
                 <Power className="mr-2 h-4 w-4" />
-                {table.status === "active" ? "Deactivate" : "Activate"}
+                {table.status === "available" ? "Deactivate" : "Activate"}
               </DropdownMenuItem>
               {table.qrToken && (
                 <>

@@ -86,13 +86,16 @@ export async function POST(request: NextRequest) {
       tableNumber,
       capacity: Number(capacity),
       location,
-      description: description || undefined,
-      status: status || "active",
+      description: description ? String(description) : "",
+      status: status || "available",
+      qrToken: "",
+      qrTokenCreatedAt: new Date().toISOString(),
+      qrCodeUrl: "",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
-    mockTables.push(newTable as Table);
+    mockTables.push(newTable);
 
     return NextResponse.json(
       {

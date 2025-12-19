@@ -48,7 +48,7 @@ export function TableForm({ table, onSuccess }: TableFormProps) {
       capacity: 4,
       location: "",
       description: "",
-      status: "active",
+      status: "available",
     },
   });
 
@@ -239,7 +239,7 @@ export function TableForm({ table, onSuccess }: TableFormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="available">Available</SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>

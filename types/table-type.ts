@@ -5,7 +5,7 @@ import {
   tableFilterSchema,
 } from "@/schema/table-schema";
 
-export type TableStatus = "active" | "inactive" | "occupied";
+export type TableStatus = "available" | "inactive" | "occupied";
 
 export interface Table {
   id: string;

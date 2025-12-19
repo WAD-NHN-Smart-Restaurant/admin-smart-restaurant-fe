@@ -89,14 +89,14 @@ export function TableQRDialog({
               <span className="text-muted-foreground">Status:</span>
               <Badge
                 className={`mt-1 font-semibold flex items-center gap-1 ${
-                  table.status === "active"
+                  table.status === "available"
                     ? "bg-transparent border-green-600 text-black"
                     : table.status === "occupied"
                       ? " bg-transparent border-orange-600 text-black"
                       : "bg-transparent border-gray-600 text-black"
                 }`}
               >
-                {table.status === "active" ? (
+                {table.status === "available" ? (
                   <>
                     <CheckCircle className="h-3 w-3" />
                     Available
