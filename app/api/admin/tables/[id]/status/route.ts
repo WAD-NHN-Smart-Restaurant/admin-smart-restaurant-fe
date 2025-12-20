@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { mockTables } from "../../../../data";
+import axiosServer from "@/libs/axios-server";
+import { toFrontendTableFormat } from "@/libs/api-transform";
+import { AxiosError } from "axios";
 
 // PATCH /api/admin/tables/:id/status - Update table status
 export async function PATCH(
@@ -11,37 +13,43 @@ export async function PATCH(
     const body = await request.json();
     const { status } = body;
 
-    if (!status || !["active", "inactive", "occupied"].includes(status)) {
+    // Validate status
+    if (!status || !["available", "inactive", "occupied"].includes(status)) {
       return NextResponse.json(
         {
           success: false,
           message:
-            "Invalid status. Must be 'active', 'inactive', or 'occupied'",
+            "Invalid status. Must be 'available', 'inactive', or 'occupied'",
         },
         { status: 400 },
       );
     }
 
-    const tableIndex = mockTables.findIndex((t) => t.id === id);
+    const response = await axiosServer.patch(`api/admin/tables/${id}/status`, {
+      status,
+    });
 
-    if (tableIndex === -1) {
+    // Transform backend response to frontend format
+    const frontendResult = {
+      ...response.data,
+      data: toFrontendTableFormat(response.data.data),
+    };
+
+    return NextResponse.json(frontendResult);
+  } catch (error) {
+    console.error("Table status PATCH error:", error);
+
+    if (error instanceof AxiosError) {
       return NextResponse.json(
         {
           success: false,
-          message: "Table not found",
+          message:
+            error.response?.data?.message || "Failed to update table status",
         },
-        { status: 404 },
+        { status: error.response?.status || 500 },
       );
     }
 
-    // Update status
-
-    return NextResponse.json({
-      success: true,
-      data: mockTables[tableIndex],
-      message: `Table ${status === "active" ? "activated" : "deactivated"} successfully`,
-    });
-  } catch (_error) {
     return NextResponse.json(
       {
         success: false,

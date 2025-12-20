@@ -49,12 +49,12 @@ export function TableFiltersSection({
               >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="All Status" />
-                </SelectTrigger>
+                </SelectTrigger>{" "}
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="available">Available</SelectItem>
                   <SelectItem value="occupied">Occupied</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
             </div>

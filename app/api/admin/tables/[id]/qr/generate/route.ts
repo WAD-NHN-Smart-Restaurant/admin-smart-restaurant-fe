@@ -18,7 +18,7 @@ export async function POST(
         },
         { status: 404 },
       );
-    }    // Generate mock QR token (in real app, this would be a signed JWT)
+    } // Generate mock QR token (in real app, this would be a signed JWT)
     const mockToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0YWJsZUlkIjoiJHtpZH0iLCJyZXN0YXVyYW50SWQiOiIxIiwiaWF0Ijoke0RhdGUubm93KCl9fQ.mock_${Date.now()}`;
 
     // Generate mock QR code (in real app, this would use qrcode library)

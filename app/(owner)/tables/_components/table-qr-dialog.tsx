@@ -84,19 +84,19 @@ export function TableQRDialog({
             <div className="flex justify-between">
               <span className="text-muted-foreground">Capacity:</span>
               <span className="font-medium">{table.capacity} seats</span>
-            </div>
+            </div>{" "}
             <div className="flex justify-between">
               <span className="text-muted-foreground">Status:</span>
               <Badge
                 className={`mt-1 font-semibold flex items-center gap-1 ${
-                  table.status === "active"
+                  table.status === "available"
                     ? "bg-transparent border-green-600 text-black"
                     : table.status === "occupied"
                       ? " bg-transparent border-orange-600 text-black"
                       : "bg-transparent border-gray-600 text-black"
                 }`}
               >
-                {table.status === "active" ? (
+                {table.status === "available" ? (
                   <>
                     <CheckCircle className="h-3 w-3" />
                     Available

@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { mockTables } from "../../../data";
-import { Table } from "@/types/table-type";
+import axiosServer from "@/libs/axios-server";
+import {
+  toBackendTableFormat,
+  toFrontendTableFormat,
+  toFrontendTableWithOrderStatus,
+} from "@/libs/api-transform";
+import { AxiosError } from "axios";
 
 // GET /api/admin/tables/:id - Get single table
 export async function GET(
@@ -9,23 +14,29 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const table = mockTables.find((t) => t.id === id);
 
-    if (!table) {
+    const response = await axiosServer.get(`api/admin/tables/${id}`);
+
+    // Transform backend response to frontend format
+    const frontendData = {
+      ...response.data,
+      data: toFrontendTableWithOrderStatus(response.data.data),
+    };
+
+    return NextResponse.json(frontendData);
+  } catch (error) {
+    console.error("Table GET error:", error);
+
+    if (error instanceof AxiosError) {
       return NextResponse.json(
         {
           success: false,
-          message: "Table not found",
+          message: error.response?.data?.message || "Table not found",
         },
-        { status: 404 },
+        { status: error.response?.status || 500 },
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      data: table,
-    });
-  } catch (_error) {
     return NextResponse.json(
       {
         success: false,
@@ -44,49 +55,35 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const tableIndex = mockTables.findIndex((t) => t.id === id);
 
-    if (tableIndex === -1) {
+    // Transform frontend format to backend format
+    const backendData = toBackendTableFormat(body);
+
+    const response = await axiosServer.put(
+      `api/admin/tables/${id}`,
+      backendData,
+    );
+
+    // Transform backend response to frontend format
+    const frontendResult = {
+      ...response.data,
+      data: toFrontendTableFormat(response.data.data),
+    };
+
+    return NextResponse.json(frontendResult);
+  } catch (error) {
+    console.error("Table PUT error:", error);
+
+    if (error instanceof AxiosError) {
       return NextResponse.json(
         {
           success: false,
-          message: "Table not found",
+          message: error.response?.data?.message || "Failed to update table",
         },
-        { status: 404 },
+        { status: error.response?.status || 500 },
       );
-    }    // Check if new table number conflicts with another table
-    if (
-      body.tableNumber &&
-      body.tableNumber !== mockTables[tableIndex].tableNumber
-    ) {
-      const existingTable = mockTables.find(
-        (t) => t.tableNumber === body.tableNumber && t.id !== id,
-      );
-      if (existingTable) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: "Table number already exists",
-          },
-          { status: 409 },
-        );
-      }
-    }    // Update table
-    const updatedTable = {
-      ...mockTables[tableIndex],
-      ...body,
-      id: id, // Ensure ID doesn't change
-      updatedAt: new Date().toISOString(),
-    } as any;
+    }
 
-    mockTables[tableIndex] = updatedTable;
-
-    return NextResponse.json({
-      success: true,
-      data: updatedTable,
-      message: "Table updated successfully",
-    });
-  } catch (_error) {
     return NextResponse.json(
       {
         success: false,
@@ -97,33 +94,36 @@ export async function PUT(
   }
 }
 
-// DELETE /api/admin/tables/:id - Delete table
+// DELETE /api/admin/tables/:id - Delete table (soft delete via status)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
-    const tableIndex = mockTables.findIndex((t) => t.id === id);
 
-    if (tableIndex === -1) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Table not found",
-        },
-        { status: 404 },
-      );
-    }
-
-    // Remove table from array
-    mockTables.splice(tableIndex, 1);
+    // Instead of hard delete, we soft delete by setting status to inactive
+    await axiosServer.patch(`api/admin/tables/${id}/status`, {
+      status: "inactive",
+    });
 
     return NextResponse.json({
       success: true,
       message: "Table deleted successfully",
     });
-  } catch (_error) {
+  } catch (error) {
+    console.error("Table DELETE error:", error);
+
+    if (error instanceof AxiosError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.response?.data?.message || "Failed to delete table",
+        },
+        { status: error.response?.status || 500 },
+      );
+    }
+
     return NextResponse.json(
       {
         success: false,

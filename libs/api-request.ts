@@ -204,26 +204,26 @@ axiosInstance.interceptors.response.use(
 //   }
 // };
 
-// // Handle authentication failure
-// const handleAuthFailure = () => {
-//   if (Object.values(AUTH_PATHS).includes(window.location.pathname)) {
-//     return;
-//   }
-//   tokenManager.clearTokens();
+// Handle authentication failure
+const handleAuthFailure = () => {
+  if (Object.values(AUTH_PATHS).includes(window.location.pathname)) {
+    return;
+  }
+  tokenManager.clearTokens();
 
-//   // Only redirect if we're in the browser
-//   if (typeof window !== "undefined") {
-//     // Clear any auth-related data from other storage
-//     localStorage.clear();
-//     sessionStorage.clear();
-//     toast.error("Session expired. Please log in again.");
+  // Only redirect if we're in the browser
+  if (typeof window !== "undefined") {
+    // Clear any auth-related data from other storage
+    localStorage.clear();
+    sessionStorage.clear();
+    toast.error("Session expired. Please log in again.");
 
-//     // Redirect to login page
-//     setTimeout(() => {
-//       window.location.href = AUTH_PATHS.LOGIN;
-//     }, 2500);
-//   }
-// };
+    // Redirect to login page
+    setTimeout(() => {
+      window.location.href = AUTH_PATHS.LOGIN;
+    }, 2500);
+  }
+};
 
 // Type-safe API wrapper
 const api = {

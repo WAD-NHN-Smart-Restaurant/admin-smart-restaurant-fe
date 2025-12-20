@@ -5,7 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Table } from "@/types/table-type";
+import { Table, TableStatus } from "@/types/table-type";
 import { TableCard } from "./table-card";
 
 interface TableGridProps {
@@ -13,7 +13,7 @@ interface TableGridProps {
   isLoading: boolean;
   error: Error | null;
   onEdit: (table: Table) => void;
-  onToggleStatus: (table: Table) => void;
+  onUpdateStatus: (table: Table, newStatus: TableStatus) => void;
   onGenerateQR: (id: string) => void;
   onDownloadQR: (table: Table, format: "png" | "pdf") => void;
   onViewQR: (table: Table) => void;
@@ -26,7 +26,7 @@ export function TableGrid({
   isLoading,
   error,
   onEdit,
-  onToggleStatus,
+  onUpdateStatus,
   onGenerateQR,
   onDownloadQR,
   onViewQR,
@@ -59,7 +59,7 @@ export function TableGrid({
                 key={table.id}
                 table={table}
                 onEdit={onEdit}
-                onToggleStatus={onToggleStatus}
+                onUpdateStatus={onUpdateStatus}
                 onGenerateQR={onGenerateQR}
                 onDownloadQR={onDownloadQR}
                 onViewQR={onViewQR}

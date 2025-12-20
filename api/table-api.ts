@@ -9,13 +9,18 @@ import {
   QRCodeDownloadOptions,
 } from "@/types/table-type";
 
+/**
+ * Table API routes - calls Next.js API routes which proxy to backend
+ * Flow: Frontend -> Next.js API routes (/api/admin/tables) -> Backend (/admin/tables)
+ */
 const TABLES_API = {
-  BASE: "api/admin/tables",
-  BY_ID: (id: string) => `api/admin/tables/${id}`,
-  STATUS: (id: string) => `api/admin/tables/${id}/status`,
-  GENERATE_QR: (id: string) => `api/admin/tables/${id}/qr/generate`,
-  DOWNLOAD_QR: (id: string) => `api/admin/tables/${id}/qr/download`,
-  DOWNLOAD_ALL_QR: "api/admin/tables/qr/download-all",
+  BASE: "/api/admin/tables",
+  BY_ID: (id: string) => `/api/admin/tables/${id}`,
+  STATUS: (id: string) => `/api/admin/tables/${id}/status`,
+  LOCATIONS: "/api/admin/tables/locations",
+  GENERATE_QR: (id: string) => `/api/admin/tables/${id}/qr/generate`,
+  DOWNLOAD_QR: (id: string) => `/api/admin/tables/${id}/qr/download`,
+  DOWNLOAD_ALL_QR: "/api/admin/tables/qr/download-all",
 };
 
 // Get all tables with optional filters
@@ -25,17 +30,28 @@ export const getTables = async (
   const params = new URLSearchParams();
   if (filters?.status) params.append("status", filters.status);
   if (filters?.location) params.append("location", filters.location);
-  if (filters?.search) params.append("search", filters.search);
+  if (filters?.sortBy) params.append("sortBy", filters.sortBy);
+  if (filters?.sortOrder) params.append("sortOrder", filters.sortOrder);
 
-  const response = await api.get<ApiResponse<Table[]>>(
-    `${TABLES_API.BASE}?${params.toString()}`,
-  );
+  const queryString = params.toString();
+  const url = queryString
+    ? `${TABLES_API.BASE}?${queryString}`
+    : TABLES_API.BASE;
+  console.log("Fetching tables with URL:", url);
+
+  const response = await api.get<ApiResponse<Table[]>>(url);
   return response.data;
 };
 
 // Get single table by ID
 export const getTableById = async (id: string): Promise<ApiResponse<Table>> => {
   const response = await api.get<ApiResponse<Table>>(TABLES_API.BY_ID(id));
+  return response.data;
+};
+
+// Get all unique locations
+export const getTableLocations = async (): Promise<ApiResponse<string[]>> => {
+  const response = await api.get<ApiResponse<string[]>>(TABLES_API.LOCATIONS);
   return response.data;
 };
 
@@ -50,7 +66,7 @@ export const createTable = async (
   return response.data;
 };
 
-// Update table
+// Update table (excludes status - use updateTableStatus instead)
 export const updateTable = async (
   id: string,
   data: UpdateTableForm,
@@ -62,6 +78,7 @@ export const updateTable = async (
   return response.data;
 };
 
+// Update table status (dedicated endpoint)
 export const updateTableStatus = async (
   id: string,
   status: TableStatus,
@@ -73,10 +90,17 @@ export const updateTableStatus = async (
   return response.data;
 };
 
-export const deleteTable = async (id: string): Promise<ApiResponse<void>> => {
-  const response = await api.delete<ApiResponse<void>>(TABLES_API.BY_ID(id));
-  return response.data;
+// Delete table (soft delete by setting status to inactive)
+export const deleteTable = async (id: string): Promise<ApiResponse<Table>> => {
+  // Delete is implemented as a status update to 'inactive'
+  return updateTableStatus(id, "inactive");
 };
+
+/**
+ * QR Code functions - NOT YET IMPLEMENTED IN BACKEND
+ * These are placeholder functions that return mock data
+ * TODO: Implement QR endpoints in backend
+ */
 
 export const generateQRCode = async (
   id: string,

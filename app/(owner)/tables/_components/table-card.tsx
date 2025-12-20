@@ -8,6 +8,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import {
   MoreVertical,
@@ -16,17 +19,17 @@ import {
   RefreshCw,
   Edit,
   Trash2,
-  Power,
   CheckCircle,
   Users,
   XCircle,
+  Circle,
 } from "lucide-react";
-import { Table } from "@/types/table-type";
+import { Table, TableStatus } from "@/types/table-type";
 
 interface TableCardProps {
   table: Table;
   onEdit: (table: Table) => void;
-  onToggleStatus: (table: Table) => void;
+  onUpdateStatus: (table: Table, newStatus: TableStatus) => void;
   onGenerateQR: (id: string) => void;
   onDownloadQR: (table: Table, format: "png" | "pdf") => void;
   onViewQR: (table: Table) => void;
@@ -37,7 +40,7 @@ interface TableCardProps {
 export function TableCard({
   table,
   onEdit,
-  onToggleStatus,
+  onUpdateStatus,
   onGenerateQR,
   onDownloadQR,
   onViewQR,
@@ -45,7 +48,7 @@ export function TableCard({
   isGeneratingQR,
 }: TableCardProps) {
   const getStatusStyles = () => {
-    if (table.status === "active") {
+    if (table.status === "available") {
       return "border-green-400 bg-green-50/30";
     }
     if (table.status === "occupied") {
@@ -55,7 +58,7 @@ export function TableCard({
   };
 
   const getStatusBadge = () => {
-    if (table.status === "active") {
+    if (table.status === "available") {
       return (
         <Badge className="mt-1 font-semibold flex items-center gap-1 bg-transparent border-green-600 text-black">
           <CheckCircle className="h-3 w-3" />
@@ -97,7 +100,7 @@ export function TableCard({
               <Button variant="ghost" size="icon">
                 <MoreVertical className="h-4 w-4" />
               </Button>
-            </DropdownMenuTrigger>
+            </DropdownMenuTrigger>{" "}
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -105,10 +108,38 @@ export function TableCard({
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onToggleStatus(table)}>
-                <Power className="mr-2 h-4 w-4" />
-                {table.status === "active" ? "Deactivate" : "Activate"}
-              </DropdownMenuItem>
+
+              {/* Status submenu */}
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <Circle className="mr-2 h-4 w-4" />
+                  Change Status
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem
+                    onClick={() => onUpdateStatus(table, "available")}
+                    disabled={table.status === "available"}
+                  >
+                    <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
+                    Available
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => onUpdateStatus(table, "occupied")}
+                    disabled={table.status === "occupied"}
+                  >
+                    <Users className="mr-2 h-4 w-4 text-orange-600" />
+                    Occupied
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => onUpdateStatus(table, "inactive")}
+                    disabled={table.status === "inactive"}
+                  >
+                    <XCircle className="mr-2 h-4 w-4 text-gray-600" />
+                    Inactive
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+
               {table.qrToken && (
                 <>
                   <DropdownMenuSeparator />

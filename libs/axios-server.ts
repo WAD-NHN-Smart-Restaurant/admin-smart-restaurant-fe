@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 const TIMEOUT = 30 * 60 * 1000;
-const ACCESS_TOKEN_KEY = "accessToken";
+const ACCESS_TOKEN_KEY = "access_token";
 const UNAUTHORIZED_STATUS = 401;
 
 const axiosServer = axios.create({
@@ -47,7 +47,6 @@ axiosServer.interceptors.response.use(
       !originalConfig._retry
     ) {
       originalConfig._retry = true;
-      // TODO: Handle refresh token
       return axiosServer(originalConfig);
     }
 

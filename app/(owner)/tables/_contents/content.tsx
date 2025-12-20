@@ -51,11 +51,10 @@ export function TablesContent() {
       table.location.toLowerCase().includes(query)
     );
   });
-
   // Stats
   const stats = {
     total: tables.length,
-    active: tables.filter((t) => t.status === "active").length,
+    active: tables.filter((t) => t.status === "available").length,
     occupied: tables.filter((t) => t.status === "occupied").length,
     withQR: tables.filter((t) => t.qrToken).length,
   };
@@ -85,10 +84,7 @@ export function TablesContent() {
     setSelectedTable(table);
     setQrDialogOpen(true);
   };
-
-  const handleToggleStatus = (table: Table) => {
-    const newStatus: TableStatus =
-      table.status === "active" ? "inactive" : "active";
+  const handleUpdateStatus = (table: Table, newStatus: TableStatus) => {
     statusMutation.mutate({ id: table.id, status: newStatus });
   };
 
@@ -143,17 +139,14 @@ export function TablesContent() {
             onFiltersChange={setFilters}
             onSearchChange={setSearchQuery}
           />
-
           {/* Stats */}
-          <TableStats stats={stats} />
-
-          {/* Tables Grid */}
+          <TableStats stats={stats} /> {/* Tables Grid */}
           <TableGrid
             tables={filteredTables}
             isLoading={isLoading}
             error={error as Error | null}
             onEdit={handleEditClick}
-            onToggleStatus={handleToggleStatus}
+            onUpdateStatus={handleUpdateStatus}
             onGenerateQR={(id) => generateQRMutation.mutate(id)}
             onDownloadQR={handleDownloadQR}
             onViewQR={handleQRClick}
