@@ -24,32 +24,20 @@ export async function POST(request: NextRequest) {
       password,
     });
 
-    const data = response.data;
+    const nextResponse = NextResponse.json(
+      { data: response.data },
+      { status: 200 }
+    );
 
-    // Store tokens in HTTP-only cookies
-    if (data.success && data.data.tokens) {
-      const cookieStore = await cookies();
-
-      // Set access token cookie (1 hour)
-      cookieStore.set("access_token", data.data.tokens.accessToken, {
+    if (response.data.data.accessToken) {
+      // Store tokens in HTTP-only cookies
+      nextResponse.cookies.set("access_token", response.data.data.accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60, // 1 hour
-        path: "/",
-      });
-
-      // Set refresh token cookie (7 days)
-      cookieStore.set("refresh_token", data.data.tokens.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 7, // 7 days
         path: "/",
       });
     }
 
-    return NextResponse.json(data, { status: 200 });
+    return nextResponse;
   } catch (error: any) {
     console.error("Login error:", error);
 

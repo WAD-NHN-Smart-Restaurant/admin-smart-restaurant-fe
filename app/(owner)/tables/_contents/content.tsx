@@ -40,7 +40,7 @@ export function TablesContent() {
     useTableQuery(filters);
 
   const { data, isLoading, error } = tablesQuery;
-  const tables = data?.data || [];
+  const tables = data || [];
 
   // Filter tables by search query
   const filteredTables = tables.filter((table) => {

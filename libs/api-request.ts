@@ -77,7 +77,7 @@ export const tokenManager = {
 let isRefreshing = false;
 let refreshPromise: Promise<string | null> | null = null;
 
-// Request interceptor - Add access token to requests
+//Request interceptor - Add access token to requests
 // axiosInstance.interceptors.request.use(
 //   (config: InternalAxiosRequestConfig) => {
 //     const token = tokenManager.getAccessToken();

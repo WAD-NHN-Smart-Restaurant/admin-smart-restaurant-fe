@@ -29,11 +29,6 @@ export function useLogin() {
   return useMutation({
     mutationFn: loginApi,
     onSuccess: (data) => {
-      // Store tokens
-      if (data.data.accessToken) {
-        tokenManager.setAccessToken(data.data.accessToken);
-      }
-
       // Invalidate and refetch user data
       queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.currentUser });
 

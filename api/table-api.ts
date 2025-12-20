@@ -26,7 +26,7 @@ const TABLES_API = {
 // Get all tables with optional filters
 export const getTables = async (
   filters?: TableFilter,
-): Promise<ApiResponse<Table[]>> => {
+): Promise<Table[]> => {
   const params = new URLSearchParams();
   if (filters?.status) params.append("status", filters.status);
   if (filters?.location) params.append("location", filters.location);
@@ -40,7 +40,9 @@ export const getTables = async (
   console.log("Fetching tables with URL:", url);
 
   const response = await api.get<ApiResponse<Table[]>>(url);
-  return response.data;
+  console.log("Tables response:", response.data);
+  
+  return response.data.data || [];
 };
 
 // Get single table by ID
