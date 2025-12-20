@@ -96,21 +96,17 @@ export const deleteTable = async (id: string): Promise<ApiResponse<Table>> => {
   return updateTableStatus(id, "inactive");
 };
 
-/**
- * QR Code functions - NOT YET IMPLEMENTED IN BACKEND
- * These are placeholder functions that return mock data
- * TODO: Implement QR endpoints in backend
- */
-
+// Generate QR code for a table
 export const generateQRCode = async (
   id: string,
 ): Promise<ApiResponse<Table>> => {
   const response = await api.post<undefined, ApiResponse<Table>>(
-    TABLES_API.GENERATE_QR(id),
+    `/api/admin/tables/${id}/qr/generate`,
   );
   return response.data;
 };
 
+// Download QR code for a table
 export const downloadQRCode = async (
   id: string,
   options: QRCodeDownloadOptions,
@@ -121,7 +117,7 @@ export const downloadQRCode = async (
   if (options.includeWifi) params.append("includeWifi", "true");
 
   const response = await api.get<Blob>(
-    `${TABLES_API.DOWNLOAD_QR(id)}?${params.toString()}`,
+    `/api/admin/tables/${id}/qr/download?${params.toString()}`,
     {
       responseType: "blob",
     },
@@ -134,7 +130,7 @@ export const downloadAllQRCodes = async (
   format: "png" | "pdf" = "png",
 ): Promise<Blob> => {
   const response = await api.get<Blob>(
-    `${TABLES_API.DOWNLOAD_ALL_QR}?format=${format}`,
+    `/api/admin/tables/qr/download-all?format=${format}`,
     {
       responseType: "blob",
     },

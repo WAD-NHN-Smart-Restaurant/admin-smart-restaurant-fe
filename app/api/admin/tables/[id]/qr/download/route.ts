@@ -1,60 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
-import { mockTables } from "../../../../../data";
+import axiosServer from "@/libs/axios-server";
+import { AxiosError } from "axios";
 
 // GET /api/admin/tables/:id/qr/download - Download QR code as PNG or PDF
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { id } = await params;
+    const { id } = params;
     const searchParams = request.nextUrl.searchParams;
     const format = searchParams.get("format") || "png";
+    const includeLogo = searchParams.get("includeLogo") === "true";
+    const includeWifi = searchParams.get("includeWifi") === "true";
 
-    const table = mockTables.find((t) => t.id === id);
-
-    if (!table) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Table not found",
-        },
-        { status: 404 },
-      );
-    }
-
-    if (!table.qrCodeUrl) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "QR code not generated for this table",
-        },
-        { status: 404 },
-      );
-    }
-
-    // In a real app, this would generate and return the actual file
-    // For mock purposes, return a simple response
-    const mockFileContent = `Mock ${format.toUpperCase()} file for table ${table.tableNumber}`;
-    const blob = new Blob([mockFileContent], {
-      type: format === "pdf" ? "application/pdf" : "image/png",
+    const backendResponse = await axiosServer.get(`api/admin/tables/${id}/qr/download`, {
+      params: { format, includeLogo, includeWifi },
+      responseType: "arraybuffer",
     });
 
-    const headers = new Headers();
-    headers.set(
-      "Content-Type",
-      format === "pdf" ? "application/pdf" : "image/png",
-    );
-    headers.set(
-      "Content-Disposition",
-      `attachment; filename="table-${table.tableNumber}-qr.${format}"`,
-    );
+    const contentType = backendResponse.headers["content-type"] || (format === "pdf" ? "application/pdf" : "image/png");
+    const contentDisposition = backendResponse.headers["content-disposition"] || `attachment; filename=table-${id}-qr.${format}`;
 
-    return new NextResponse(blob, {
+    return new NextResponse(backendResponse.data, {
       status: 200,
-      headers,
+      headers: {
+        "Content-Type": contentType,
+        "Content-Disposition": contentDisposition,
+      },
     });
-  } catch (_error) {
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.response?.data?.message || "Failed to download QR code",
+        },
+        { status: error.response?.status || 500 },
+      );
+    }
     return NextResponse.json(
       {
         success: false,
