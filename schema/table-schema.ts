@@ -18,7 +18,7 @@ export const tableSchema = z.object({
   status: z.enum(["available", "inactive", "occupied"]),
 });
 
-export const updateTableSchema = tableSchema.partial();
+export const updateTableSchema = tableSchema.omit({ status: true }).partial();
 
 export const tableFilterSchema = z.object({
   status: z.enum(["available", "inactive", "occupied"]).optional(),

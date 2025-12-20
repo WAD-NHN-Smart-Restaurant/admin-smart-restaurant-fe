@@ -7,7 +7,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { tableSchema } from "@/schema/table-schema";
 import { createTable, updateTable } from "@/api/table-api";
-import { Table, TABLE_LOCATIONS, CreateTableForm } from "@/types/table-type";
+import {
+  Table,
+  TABLE_LOCATIONS,
+  CreateTableForm,
+  UpdateTableForm,
+} from "@/types/table-type";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -85,7 +90,7 @@ export function TableForm({ table, onSuccess }: TableFormProps) {
 
   // Update mutation
   const updateMutation = useMutation({
-    mutationFn: (data: CreateTableForm) => updateTable(table!.id, data),
+    mutationFn: (data: UpdateTableForm) => updateTable(table!.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tables"] });
       queryClient.invalidateQueries({ queryKey: ["table", table!.id] });
@@ -103,7 +108,8 @@ export function TableForm({ table, onSuccess }: TableFormProps) {
 
   const onSubmit = (data: CreateTableForm) => {
     if (isEdit) {
-      updateMutation.mutate(data);
+      const { status, ...updateData } = data;
+      updateMutation.mutate(updateData);
     } else {
       createMutation.mutate(data);
     }
@@ -222,35 +228,37 @@ export function TableForm({ table, onSuccess }: TableFormProps) {
         />
 
         {/* Status */}
-        <FormField
-          control={form.control}
-          name="status"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Status *</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                value={field.value}
-                disabled={isSubmitting}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                </FormControl>{" "}
-                <SelectContent>
-                  <SelectItem value="available">Available</SelectItem>
-                  <SelectItem value="occupied">Occupied</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormDescription>
-                Inactive tables cannot receive new orders
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {table ? null : (
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Status *</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  disabled={isSubmitting}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                  </FormControl>{" "}
+                  <SelectContent>
+                    <SelectItem value="available">Available</SelectItem>
+                    <SelectItem value="occupied">Occupied</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  Inactive tables cannot receive new orders
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         {/* Actions */}
         <div className="flex gap-3 pt-4">

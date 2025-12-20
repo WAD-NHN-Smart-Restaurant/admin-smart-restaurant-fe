@@ -69,7 +69,7 @@ export const tokenManager = {
   },
 
   hasValidTokens: (): boolean => {
-    return !!(tokenManager.getAccessToken() || tokenManager.getRefreshToken());
+    return !!tokenManager.getAccessToken();
   },
 };
 

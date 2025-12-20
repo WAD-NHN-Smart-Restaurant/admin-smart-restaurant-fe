@@ -26,13 +26,13 @@ export async function POST(request: NextRequest) {
 
     const nextResponse = NextResponse.json(
       { data: response.data },
-      { status: 200 }
+      { status: 200 },
     );
 
     if (response.data.data.accessToken) {
       // Store tokens in HTTP-only cookies
       nextResponse.cookies.set("access_token", response.data.data.accessToken, {
-        httpOnly: true,
+        httpOnly: false,
         path: "/",
       });
     }
