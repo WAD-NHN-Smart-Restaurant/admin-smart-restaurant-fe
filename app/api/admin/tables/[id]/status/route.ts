@@ -4,9 +4,10 @@ import { mockTables } from "../../../../data";
 // PATCH /api/admin/tables/:id/status - Update table status
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { status } = body;
 
@@ -21,7 +22,7 @@ export async function PATCH(
       );
     }
 
-    const tableIndex = mockTables.findIndex((t) => t.id === params.id);
+    const tableIndex = mockTables.findIndex((t) => t.id === id);
 
     if (tableIndex === -1) {
       return NextResponse.json(

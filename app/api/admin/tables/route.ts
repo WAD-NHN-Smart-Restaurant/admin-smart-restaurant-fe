@@ -78,21 +78,19 @@ export async function POST(request: NextRequest) {
         },
         { status: 409 },
       );
-    }
-
-    // Create new table
+    }    // Create new table
     const newTable = {
       id: String(mockTables.length + 1),
       tableNumber,
       capacity: Number(capacity),
       location,
-      description: description || undefined,
+      description: description || "",
       status: status || "active",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
-    mockTables.push(newTable as Table);
+    mockTables.push(newTable as any);
 
     return NextResponse.json(
       {

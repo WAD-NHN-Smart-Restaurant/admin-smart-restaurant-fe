@@ -4,10 +4,11 @@ import { mockTables } from "../../../../../data";
 // POST /api/admin/tables/:id/qr/generate - Generate or regenerate QR code
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const tableIndex = mockTables.findIndex((t) => t.id === params.id);
+    const { id } = await params;
+    const tableIndex = mockTables.findIndex((t) => t.id === id);
 
     if (tableIndex === -1) {
       return NextResponse.json(
@@ -17,10 +18,8 @@ export async function POST(
         },
         { status: 404 },
       );
-    }
-
-    // Generate mock QR token (in real app, this would be a signed JWT)
-    const mockToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0YWJsZUlkIjoiJHtwYXJhbXMuaWR9IiwicmVzdGF1cmFudElkIjoiMSIsImlhdCI6JHtEYXRlLm5vdygpfX0.mock_${Date.now()}`;
+    }    // Generate mock QR token (in real app, this would be a signed JWT)
+    const mockToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0YWJsZUlkIjoiJHtpZH0iLCJyZXN0YXVyYW50SWQiOiIxIiwiaWF0Ijoke0RhdGUubm93KCl9fQ.mock_${Date.now()}`;
 
     // Generate mock QR code (in real app, this would use qrcode library)
     const mockQRCode =

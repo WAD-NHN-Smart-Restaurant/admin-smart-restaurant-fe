@@ -12,7 +12,7 @@ import {
   getCurrentUser,
   checkAuthStatus,
 } from "@/api/auth-api";
-import { tokenManager } from "@/lib/api-request";
+import { tokenManager } from "@/libs/api-request";
 import { AUTH_PATHS, PATHS } from "@/data/path";
 import { LoginFormData, RegisterFormData, User } from "@/types/auth-type";
 

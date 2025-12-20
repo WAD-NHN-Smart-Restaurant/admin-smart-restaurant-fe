@@ -4,13 +4,14 @@ import { mockTables } from "../../../../../data";
 // GET /api/admin/tables/:id/qr/download - Download QR code as PNG or PDF
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const searchParams = request.nextUrl.searchParams;
     const format = searchParams.get("format") || "png";
 
-    const table = mockTables.find((t) => t.id === params.id);
+    const table = mockTables.find((t) => t.id === id);
 
     if (!table) {
       return NextResponse.json(

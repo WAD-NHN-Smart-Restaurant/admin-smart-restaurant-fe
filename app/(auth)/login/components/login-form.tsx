@@ -14,7 +14,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useAuth } from "@/context/auth-context";
-import { LoginFormData, loginSchema } from "@/schema/auth-schema";
+import { loginSchema } from "@/schema/auth-schema";
+import { LoginFormData } from "@/types/auth-type";
 import Link from "next/link";
 import { PATHS } from "@/data/path";
 

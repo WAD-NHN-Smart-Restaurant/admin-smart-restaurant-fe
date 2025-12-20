@@ -1,50 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
-
-// Mock token blacklist (in a real app, this would be stored in a database)
-const blacklistedTokens: Set<string> = new Set();
+import axiosServer from "@/libs/axios-server";
+import { cookies } from "next/headers";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { refreshToken } = body;
+    // Forward logout request to backend
+    await axiosServer.post("api/auth/logout");
 
-    if (!refreshToken) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Refresh token is required",
-        },
-        { status: 400 },
-      );
-    }
+    // Clear cookies
+    const cookieStore = await cookies();
+    cookieStore.delete("access_token");
+    cookieStore.delete("refresh_token");
 
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 200));
-
-    // Add token to blacklist
-    blacklistedTokens.add(refreshToken);
-
-    // Create response and clear cookies
-    const response = NextResponse.json(
+    return NextResponse.json(
       {
         success: true,
         message: "Logout successful",
       },
       { status: 200 },
     );
+  } catch (error: any) {
+    console.error("Logout error:", error);
 
-    // Clear authentication cookies
-    response.cookies.delete("accessToken");
-    response.cookies.delete("refreshToken");
+    // Even if backend fails, clear cookies
+    const cookieStore = await cookies();
+    cookieStore.delete("access_token");
+    cookieStore.delete("refresh_token");
 
-    return response;
-  } catch (_error) {
     return NextResponse.json(
       {
-        success: false,
-        message: "Internal server error",
+        success: true,
+        message: "Logout successful",
       },
-      { status: 500 },
+      { status: 200 },
     );
   }
 }

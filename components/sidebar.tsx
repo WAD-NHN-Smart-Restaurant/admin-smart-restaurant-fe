@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/utils";
 import { ShoppingBag, Users, LogOut, Menu, X, ForkKnife } from "lucide-react";
 import { PATHS } from "@/data/path";
 import { Button } from "@/components/ui/button";

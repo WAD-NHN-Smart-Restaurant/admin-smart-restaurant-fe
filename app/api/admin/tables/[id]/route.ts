@@ -5,10 +5,11 @@ import { Table } from "@/types/table-type";
 // GET /api/admin/tables/:id - Get single table
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const table = mockTables.find((t) => t.id === params.id);
+    const { id } = await params;
+    const table = mockTables.find((t) => t.id === id);
 
     if (!table) {
       return NextResponse.json(
@@ -38,11 +39,12 @@ export async function GET(
 // PUT /api/admin/tables/:id - Update table
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
-    const tableIndex = mockTables.findIndex((t) => t.id === params.id);
+    const tableIndex = mockTables.findIndex((t) => t.id === id);
 
     if (tableIndex === -1) {
       return NextResponse.json(
@@ -52,15 +54,13 @@ export async function PUT(
         },
         { status: 404 },
       );
-    }
-
-    // Check if new table number conflicts with another table
+    }    // Check if new table number conflicts with another table
     if (
       body.tableNumber &&
       body.tableNumber !== mockTables[tableIndex].tableNumber
     ) {
       const existingTable = mockTables.find(
-        (t) => t.tableNumber === body.tableNumber && t.id !== params.id,
+        (t) => t.tableNumber === body.tableNumber && t.id !== id,
       );
       if (existingTable) {
         return NextResponse.json(
@@ -71,17 +71,15 @@ export async function PUT(
           { status: 409 },
         );
       }
-    }
-
-    // Update table
+    }    // Update table
     const updatedTable = {
       ...mockTables[tableIndex],
       ...body,
-      id: params.id, // Ensure ID doesn't change
+      id: id, // Ensure ID doesn't change
       updatedAt: new Date().toISOString(),
-    };
+    } as any;
 
-    mockTables[tableIndex] = updatedTable as Table;
+    mockTables[tableIndex] = updatedTable;
 
     return NextResponse.json({
       success: true,
@@ -102,10 +100,11 @@ export async function PUT(
 // DELETE /api/admin/tables/:id - Delete table
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const tableIndex = mockTables.findIndex((t) => t.id === params.id);
+    const { id } = await params;
+    const tableIndex = mockTables.findIndex((t) => t.id === id);
 
     if (tableIndex === -1) {
       return NextResponse.json(

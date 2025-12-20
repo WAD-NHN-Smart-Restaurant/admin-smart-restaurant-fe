@@ -1,25 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-
-// Mock token generation
-function generateMockToken(userId: string, type: "access" | "refresh"): string {
-  const timestamp = Date.now();
-  const random = Math.random().toString(36).substring(2);
-  return `mock_${type}_token_${userId}_${timestamp}_${random}`;
-}
-
-// Extract user ID from mock token
-function extractUserIdFromToken(token: string): string | null {
-  try {
-    // Mock token format: mock_refresh_token_userId_timestamp_random
-    const parts = token.split("_");
-    if (parts.length >= 4 && parts[0] === "mock" && parts[1] === "refresh") {
-      return parts[3];
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
+import axiosServer from "@/libs/axios-server";
+import { cookies } from "next/headers";
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,74 +8,72 @@ export async function POST(request: NextRequest) {
     const { refreshToken } = body;
 
     if (!refreshToken) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Refresh token is required",
-        },
-        { status: 400 },
-      );
+      // Try to get from cookie
+      const cookieStore = await cookies();
+      const cookieRefreshToken = cookieStore.get("refresh_token")?.value;
+
+      if (!cookieRefreshToken) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Refresh token is required",
+          },
+          { status: 400 },
+        );
+      }
+
+      // Use cookie token
+      body.refreshToken = cookieRefreshToken;
     }
 
-    // Validate refresh token and extract user ID
-    const userId = extractUserIdFromToken(refreshToken);
+    // Forward request to backend
+    const response = await axiosServer.post("api/auth/refresh", body);
+    const data = response.data;
 
-    if (!userId) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Invalid refresh token",
-        },
-        { status: 401 },
-      );
+    // Update tokens in HTTP-only cookies
+    if (data.success && data.data) {
+      const cookieStore = await cookies();
+
+      // Set new access token
+      cookieStore.set("access_token", data.data.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60, // 1 hour
+        path: "/",
+      });
+
+      // Set new refresh token if provided
+      if (data.data.refreshToken) {
+        cookieStore.set("refresh_token", data.data.refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: 60 * 60 * 24 * 7, // 7 days
+          path: "/",
+        });
+      }
     }
 
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    return NextResponse.json(data, { status: 200 });
+  } catch (error: any) {
+    console.error("Token refresh error:", error);
 
-    // Generate new tokens
-    const newAccessToken = generateMockToken(userId, "access");
-    const newRefreshToken = generateMockToken(userId, "refresh");
+    // Clear cookies on refresh failure
+    const cookieStore = await cookies();
+    cookieStore.delete("access_token");
+    cookieStore.delete("refresh_token");
 
-    // Create response with new cookies
-    const response = NextResponse.json(
-      {
-        success: true,
-        message: "Token refreshed successfully",
-        data: {
-          accessToken: newAccessToken,
-          refreshToken: newRefreshToken,
-          expiresIn: 20 * 60, // 20 minutes in seconds
-        },
-      },
-      { status: 200 },
-    );
+    const statusCode = error.response?.status || 500;
+    const message =
+      error.response?.data?.message || error.message || "Token refresh failed";
 
-    // Set new HTTP-only cookies for tokens
-    response.cookies.set("accessToken", newAccessToken, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 20 * 60, // 20 minutes
-      path: "/",
-    });
-
-    response.cookies.set("refreshToken", newRefreshToken, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60, // 7 days
-      path: "/",
-    });
-
-    return response;
-  } catch (_error) {
     return NextResponse.json(
       {
         success: false,
-        message: "Internal server error",
+        message,
       },
-      { status: 500 },
+      { status: statusCode },
     );
   }
 }

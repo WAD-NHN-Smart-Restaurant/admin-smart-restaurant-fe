@@ -1,4 +1,4 @@
-import api from "@/lib/api-request";
+import api from "@/libs/api-request";
 import { ApiResponse } from "@/types/api-type";
 import {
   Table,
@@ -10,12 +10,12 @@ import {
 } from "@/types/table-type";
 
 const TABLES_API = {
-  BASE: "/admin/tables",
-  BY_ID: (id: string) => `/admin/tables/${id}`,
-  STATUS: (id: string) => `/admin/tables/${id}/status`,
-  GENERATE_QR: (id: string) => `/admin/tables/${id}/qr/generate`,
-  DOWNLOAD_QR: (id: string) => `/admin/tables/${id}/qr/download`,
-  DOWNLOAD_ALL_QR: "/admin/tables/qr/download-all",
+  BASE: "api/admin/tables",
+  BY_ID: (id: string) => `api/admin/tables/${id}`,
+  STATUS: (id: string) => `api/admin/tables/${id}/status`,
+  GENERATE_QR: (id: string) => `api/admin/tables/${id}/qr/generate`,
+  DOWNLOAD_QR: (id: string) => `api/admin/tables/${id}/qr/download`,
+  DOWNLOAD_ALL_QR: "api/admin/tables/qr/download-all",
 };
 
 // Get all tables with optional filters
