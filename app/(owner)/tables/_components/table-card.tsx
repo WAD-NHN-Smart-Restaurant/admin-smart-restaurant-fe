@@ -140,7 +140,7 @@ export function TableCard({
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
 
-              {table.qrToken && (
+              {table.qrCodeUrl && (
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => onGenerateQR(table.id)}>
@@ -191,7 +191,7 @@ export function TableCard({
 
         {/* QR Code Actions - Always at bottom */}
         <div className="flex gap-2 mt-auto pt-3">
-          {table.qrToken ? (
+          {table.qrCodeUrl ? (
             <Button
               variant="outline"
               size="sm"

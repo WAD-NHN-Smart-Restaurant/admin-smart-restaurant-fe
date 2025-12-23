@@ -16,7 +16,7 @@ export interface Table {
   status: TableStatus;
   qrToken?: string;
   qrTokenCreatedAt?: string;
-  qrCodeUrl?: string; // Backend will send QR code image URL or base64
+  qrCodeUrl?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -8,13 +8,20 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const format = searchParams.get("format") || "png";
 
-    const backendResponse = await axiosServer.get(`api/admin/tables/qr/download-all`, {
-      params: { format },
-      responseType: "arraybuffer",
-    });
+    const backendResponse = await axiosServer.get(
+      `api/admin/tables/qr/download-all`,
+      {
+        params: { format },
+        responseType: "arraybuffer",
+      },
+    );
 
-    const contentType = backendResponse.headers["content-type"] || (format === "pdf" ? "application/pdf" : "application/zip");
-    const contentDisposition = backendResponse.headers["content-disposition"] || `attachment; filename=all-tables-qr.${format === "png" ? "zip" : "pdf"}`;
+    const contentType =
+      backendResponse.headers["content-type"] ||
+      (format === "pdf" ? "application/pdf" : "application/zip");
+    const contentDisposition =
+      backendResponse.headers["content-disposition"] ||
+      `attachment; filename=all-tables-qr.${format === "png" ? "zip" : "pdf"}`;
 
     return new NextResponse(backendResponse.data, {
       status: 200,
@@ -28,7 +35,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: error.response?.data?.message || "Failed to download QR codes",
+          message:
+            error.response?.data?.message || "Failed to download QR codes",
         },
         { status: error.response?.status || 500 },
       );

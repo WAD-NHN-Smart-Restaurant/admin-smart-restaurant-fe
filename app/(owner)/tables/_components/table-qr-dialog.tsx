@@ -37,8 +37,60 @@ export function TableQRDialog({
   onDownload,
   onRegenerate,
 }: TableQRDialogProps) {
-  function printQRCode(_url: string, _tableNumber: string): void {
-    throw new Error("Function not implemented.");
+  function printQRCode(url: string, tableNumber: string): void {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>QR Code - Table ${tableNumber}</title>
+          <style>
+            body {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              height: 100vh;
+              margin: 0;
+              font-family: Arial, sans-serif;
+            }
+            .qr-container {
+              text-align: center;
+              padding: 20px;
+              border: 1px solid #ccc;
+              border-radius: 8px;
+            }
+            .qr-image {
+              width: 300px;
+              height: 300px;
+              margin: 20px 0;
+            }
+            .table-info {
+              margin-top: 10px;
+              font-size: 18px;
+              font-weight: bold;
+            }
+            @media print {
+              body { height: auto; }
+              .qr-container { border: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="qr-container">
+            <h2>QR Code for Table ${tableNumber}</h2>
+            <img src="${url}" alt="QR Code" class="qr-image" />
+            <p class="table-info">Scan to access the menu</p>
+          </div>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
   }
 
   return (
@@ -61,7 +113,6 @@ export function TableQRDialog({
                   alt={`QR Code for table ${table.tableNumber}`}
                   fill
                   className="object-contain"
-                  unoptimized // For base64 images
                 />
               </div>
             ) : (

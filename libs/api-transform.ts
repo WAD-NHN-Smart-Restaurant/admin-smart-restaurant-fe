@@ -30,7 +30,7 @@ export function toBackendTableFormat(
   if (table.description !== undefined) {
     transformed.description = table.description;
   }
-  if (table.status !== undefined) {
+  if ("status" in table && table.status !== undefined) {
     transformed.status = table.status;
   }
 
@@ -51,7 +51,7 @@ export function toFrontendTableFormat(table: any): Table {
     status: table.status,
     qrToken: table.qr_token,
     qrTokenCreatedAt: table.qr_token_created_at,
-    qrCodeUrl: table.qr_code_url,
+    qrCodeUrl: table.qrUrl,
     createdAt: table.created_at,
     updatedAt: table.updated_at,
   };

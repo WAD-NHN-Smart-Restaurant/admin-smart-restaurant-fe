@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProtectedRoute } from "@/components/auth-guard";
 import { useTableQuery } from "./use-table-query";
 import { TableHeader } from "../_components/table-header";
@@ -58,6 +58,17 @@ export function TablesContent() {
     occupied: tables.filter((t) => t.status === "occupied").length,
     withQR: tables.filter((t) => t.qrToken).length,
   };
+
+  useEffect(() => {
+    if (tablesQuery.isSuccess && selectedTable) {
+      const updatedTable = tables.find((t) => t.id === selectedTable.id);
+      if (updatedTable) {
+        setSelectedTable(updatedTable);
+      } else {
+        setSelectedTable(null);
+      }
+    }
+  }, [tables, selectedTable, tablesQuery.isSuccess]);
 
   // Handlers
   const handleCreateClick = () => {

@@ -45,7 +45,7 @@ export const loginApi = async (
       AUTH_API.LOGIN,
       credentials,
     );
- 
+
     return response.data;
   } catch (error: unknown) {
     throw error;

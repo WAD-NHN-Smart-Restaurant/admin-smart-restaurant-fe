@@ -3,21 +3,31 @@ import axiosServer from "@/libs/axios-server";
 import { AxiosError } from "axios";
 
 // GET /api/admin/tables/:id/qr/download - Download QR code as PNG or PDF
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const searchParams = request.nextUrl.searchParams;
     const format = searchParams.get("format") || "png";
     const includeLogo = searchParams.get("includeLogo") === "true";
     const includeWifi = searchParams.get("includeWifi") === "true";
 
-    const backendResponse = await axiosServer.get(`api/admin/tables/${id}/qr/download`, {
-      params: { format, includeLogo, includeWifi },
-      responseType: "arraybuffer",
-    });
+    const backendResponse = await axiosServer.get(
+      `api/admin/tables/${id}/qr/download`,
+      {
+        params: { format, includeLogo, includeWifi },
+        responseType: "arraybuffer",
+      },
+    );
 
-    const contentType = backendResponse.headers["content-type"] || (format === "pdf" ? "application/pdf" : "image/png");
-    const contentDisposition = backendResponse.headers["content-disposition"] || `attachment; filename=table-${id}-qr.${format}`;
+    const contentType =
+      backendResponse.headers["content-type"] ||
+      (format === "pdf" ? "application/pdf" : "image/png");
+    const contentDisposition =
+      backendResponse.headers["content-disposition"] ||
+      `attachment; filename=table-${id}-qr.${format}`;
 
     return new NextResponse(backendResponse.data, {
       status: 200,
@@ -31,7 +41,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json(
         {
           success: false,
-          message: error.response?.data?.message || "Failed to download QR code",
+          message:
+            error.response?.data?.message || "Failed to download QR code",
         },
         { status: error.response?.status || 500 },
       );
