@@ -93,6 +93,8 @@ export function TableQRDialog({
     printWindow.close();
   }
 
+  console.log("Table QR Dialog Rendered with table:", table);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">

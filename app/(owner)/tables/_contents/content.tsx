@@ -54,7 +54,7 @@ export function TablesContent() {
   // Stats
   const stats = {
     total: tables.length,
-    active: tables.filter((t) => t.status === "available").length,
+    available: tables.filter((t) => t.status === "available").length,
     occupied: tables.filter((t) => t.status === "occupied").length,
     withQR: tables.filter((t) => t.qrToken).length,
   };
