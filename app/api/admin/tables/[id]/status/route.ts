@@ -13,7 +13,6 @@ export async function PATCH(
     const body = await request.json();
     const { status } = body;
 
-    // Validate status
     if (!status || !["available", "inactive", "occupied"].includes(status)) {
       return NextResponse.json(
         {

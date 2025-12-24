@@ -60,7 +60,7 @@ export const mockTables = [
     capacity: 6,
     location: "Outdoor",
     description: "Large patio table perfect for groups",
-    status: "active" as const,
+    status: "available" as const,
     qrToken:
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0YWJsZUlkIjoiMyIsInJlc3RhdXJhbnRJZCI6IjEiLCJpYXQiOjE3MDMxMjAwMDB9.mock",
     qrTokenCreatedAt: new Date("2024-12-10").toISOString(),
@@ -105,7 +105,7 @@ export const mockTables = [
     capacity: 2,
     location: "Balcony",
     description: "Romantic balcony seating",
-    status: "active" as const,
+    status: "available" as const,
     qrToken:
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0YWJsZUlkIjoiNiIsInJlc3RhdXJhbnRJZCI6IjEiLCJpYXQiOjE3MDMxMjAwMDB9.mock",
     qrTokenCreatedAt: new Date("2024-12-14").toISOString(),
@@ -120,7 +120,7 @@ export const mockTables = [
     capacity: 4,
     location: "Main Hall",
     description: "Central location, easy access",
-    status: "active" as const,
+    status: "available" as const,
     createdAt: new Date("2024-11-10").toISOString(),
     updatedAt: new Date("2024-11-10").toISOString(),
   },
