@@ -45,7 +45,6 @@ export const loginApi = async (
       AUTH_API.LOGIN,
       credentials,
     );
-
     return response.data;
   } catch (error: unknown) {
     throw error;
@@ -75,14 +74,7 @@ export const registerApi = async (
  */
 export const logoutApi = async (): Promise<void> => {
   try {
-    const refreshToken = tokenManager.getRefreshToken();
-
-    if (refreshToken) {
-      // Call logout endpoint to invalidate tokens on server
-      await api.post<{ refreshToken: string }, void>(AUTH_API.LOGOUT, {
-        refreshToken,
-      });
-    }
+    await api.post<void>(AUTH_API.LOGOUT);
   } catch (error) {
     console.error("Server logout error:", error);
   } finally {

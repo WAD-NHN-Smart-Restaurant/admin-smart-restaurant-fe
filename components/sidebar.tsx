@@ -43,6 +43,7 @@ function SidebarContent({
   onLogout,
   isLogoutLoading,
 }: SidebarContentProps) {
+  const { user } = useAuth();
   return (
     <>
       {/* Logo */}
@@ -101,8 +102,10 @@ function SidebarContent({
             JD
           </div>
           <div className="flex-1">
-            <div className="text-sm font-semibold">John Doe</div>
-            <div className="text-xs text-gray-400">Restaurant Admin</div>
+            <div className="text-sm font-semibold">{user?.name}</div>
+            <div className="text-xs text-gray-400">
+              {user?.role?.toUpperCase()}
+            </div>
           </div>
         </div>
         <button

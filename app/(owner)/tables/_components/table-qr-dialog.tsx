@@ -39,7 +39,10 @@ export function TableQRDialog({
 }: TableQRDialogProps) {
   function printQRCode(url: string, tableNumber: string): void {
     const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
+    if (!printWindow) {
+      alert("Pop-up blocked. Please allow pop-ups and try again.");
+      return;
+    }
 
     printWindow.document.write(`
       <html>
@@ -80,7 +83,7 @@ export function TableQRDialog({
         <body>
           <div class="qr-container">
             <h2>QR Code for Table ${tableNumber}</h2>
-            <img src="${url}" alt="QR Code" class="qr-image" />
+            <img src="${url}" alt="QR Code" class="qr-image" onload="window.print();" onerror="alert('Failed to load QR code image');" />
             <p class="table-info">Scan to access the menu</p>
           </div>
         </body>
@@ -89,8 +92,20 @@ export function TableQRDialog({
 
     printWindow.document.close();
     printWindow.focus();
-    printWindow.print();
-    printWindow.close();
+
+    // Fallback: print after a delay if onload doesn't trigger
+    setTimeout(() => {
+      try {
+        printWindow.print();
+      } catch (error) {
+        console.error("Print failed:", error);
+      }
+    }, 1000);
+
+    // Close window after printing (with delay)
+    setTimeout(() => {
+      printWindow.close();
+    }, 3000);
   }
 
   console.log("Table QR Dialog Rendered with table:", table);
@@ -108,10 +123,10 @@ export function TableQRDialog({
         <div className="space-y-4">
           {/* QR Code Display */}
           <div className="flex justify-center items-center bg-white p-6 rounded-lg border">
-            {table.qrCodeUrl ? (
+            {table.qrUrl ? (
               <div className="relative w-64 h-64">
                 <Image
-                  src={table.qrCodeUrl}
+                  src={table.qrUrl}
                   alt={`QR Code for table ${table.tableNumber}`}
                   fill
                   className="object-contain"
@@ -188,10 +203,10 @@ export function TableQRDialog({
               <RefreshCw className="mr-2 h-4 w-4" />
               Regenerate
             </Button>
-            {table.qrCodeUrl && (
+            {table.qrUrl && (
               <Button
                 variant="outline"
-                onClick={() => printQRCode(table.qrCodeUrl!, table.tableNumber)}
+                onClick={() => printQRCode(table.qrUrl!, table.tableNumber)}
                 className="w-full sm:w-auto"
               >
                 <Printer className="mr-2 h-4 w-4" />

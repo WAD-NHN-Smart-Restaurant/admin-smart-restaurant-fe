@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * API Data Transformation Utilities
  * Converts between frontend camelCase and backend snake_case formats
@@ -51,7 +52,7 @@ export function toFrontendTableFormat(table: any): Table {
     status: table.status,
     qrToken: table.qr_token,
     qrTokenCreatedAt: table.qr_token_created_at,
-    qrCodeUrl: table.qrUrl,
+    qrUrl: table.qrUrl,
     createdAt: table.created_at,
     updatedAt: table.updated_at,
   };

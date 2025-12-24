@@ -16,7 +16,7 @@ export interface Table {
   status: TableStatus;
   qrToken?: string;
   qrTokenCreatedAt?: string;
-  qrCodeUrl?: string;
+  qrUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
