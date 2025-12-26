@@ -14,7 +14,6 @@ import {
   CurrentUserResponse,
 } from "@/types/auth-type";
 import {
-  loginResponseSchema,
   registerResponseSchema,
   currentUserResponseSchema,
   confirmEmailResponseSchema,

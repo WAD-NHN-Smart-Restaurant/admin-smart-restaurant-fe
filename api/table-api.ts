@@ -8,7 +8,6 @@ import {
   TableFilter,
   QRCodeDownloadOptions,
 } from "@/types/table-type";
-import { string } from "zod";
 
 /**
  * Table API routes - calls Next.js API routes which proxy to backend
@@ -98,8 +97,8 @@ export const deleteTable = async (id: string): Promise<ApiResponse<Table>> => {
 // Generate QR code for a table
 export const generateQRCode = async (
   id: string,
-): Promise<ApiResponse<String>> => {
-  const response = await api.post<undefined, ApiResponse<String>>(
+): Promise<ApiResponse<string>> => {
+  const response = await api.post<undefined, ApiResponse<string>>(
     `/api/admin/tables/${id}/qr/generate`,
   );
   return response.data;

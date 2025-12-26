@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { ProtectedRoute } from "@/components/auth-guard";
 import { useTableQuery } from "./use-table-query";
 import { TableHeader } from "../_components/table-header";
@@ -40,7 +40,7 @@ export function TablesContent() {
     useTableQuery(filters);
 
   const { data, isLoading, error } = tablesQuery;
-  const tables = data || [];
+  const tables = useMemo(() => data || [], [data]);
 
   // Filter tables by search query
   const filteredTables = tables.filter((table) => {
@@ -59,16 +59,13 @@ export function TablesContent() {
     withQR: tables.filter((t) => t.qrToken).length,
   };
 
-  useEffect(() => {
-    if (tablesQuery.isSuccess && selectedTable) {
-      const updatedTable = tables.find((t) => t.id === selectedTable.id);
-      if (updatedTable) {
-        setSelectedTable(updatedTable);
-      } else {
-        setSelectedTable(null);
-      }
-    }
-  }, [tables, selectedTable, tablesQuery.isSuccess]);
+  // Derive updated selectedTable from current tables data
+  const currentSelectedTable = useMemo(() => {
+    if (!selectedTable || !tablesQuery.isSuccess) return selectedTable;
+
+    const updatedTable = tables.find((t) => t.id === selectedTable.id);
+    return updatedTable || null;
+  }, [selectedTable, tables, tablesQuery.isSuccess]);
 
   // Handlers
   const handleCreateClick = () => {
@@ -169,7 +166,7 @@ export function TablesContent() {
         {/* Delete Confirmation Dialog */}
         <DeleteTableDialog
           open={deleteDialogOpen}
-          table={selectedTable}
+          table={currentSelectedTable}
           isDeleting={deleteMutation.isPending}
           onOpenChange={setDeleteDialogOpen}
           onConfirm={handleDeleteConfirm}
@@ -198,13 +195,15 @@ export function TablesContent() {
         </Dialog>
 
         {/* QR Code Dialog */}
-        {selectedTable && (
+        {currentSelectedTable && (
           <TableQRDialog
-            table={selectedTable}
+            table={currentSelectedTable}
             open={qrDialogOpen}
             onOpenChange={setQrDialogOpen}
             onDownload={handleDownloadQR}
-            onRegenerate={() => generateQRMutation.mutate(selectedTable.id)}
+            onRegenerate={() =>
+              generateQRMutation.mutate(currentSelectedTable.id)
+            }
           />
         )}
       </div>

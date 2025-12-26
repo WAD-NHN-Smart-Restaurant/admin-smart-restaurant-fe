@@ -4,7 +4,15 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/utils/utils";
-import { ShoppingBag, Users, LogOut, Menu, X, ForkKnife } from "lucide-react";
+import {
+  ShoppingBag,
+  Users,
+  LogOut,
+  Menu,
+  X,
+  ForkKnife,
+  Grid3x3,
+} from "lucide-react";
 import { PATHS } from "@/data/path";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/auth-context";
@@ -27,6 +35,16 @@ const navItems: NavItem[] = [
     title: "Tables",
     href: PATHS.TABLES.INDEX,
     icon: <Users className="h-5 w-5" />,
+  },
+  {
+    title: "Menu Categories",
+    href: PATHS.MENU.CATEGORIES.INDEX,
+    icon: <Grid3x3 className="h-5 w-5" />,
+  },
+  {
+    title: "Menu Items",
+    href: PATHS.MENU.ITEMS.INDEX,
+    icon: <ForkKnife className="h-5 w-5" />,
   },
 ];
 

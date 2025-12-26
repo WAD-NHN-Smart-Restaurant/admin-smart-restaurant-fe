@@ -10,6 +10,14 @@ export const PROTECTED_PATHS = {
     CREATE: "/tables/create",
     EDIT: (id: string) => `/tables/${id}/edit`,
   },
+  MENU: {
+    CATEGORIES: {
+      INDEX: "/menu/categories",
+    },
+    ITEMS: {
+      INDEX: "/menu/items",
+    },
+  },
 };
 
 export const PUBLIC_PATHS = {

@@ -108,7 +108,7 @@ export function TableForm({ table, onSuccess }: TableFormProps) {
 
   const onSubmit = (data: CreateTableForm) => {
     if (isEdit) {
-      const { status, ...updateData } = data;
+      const { status: _, ...updateData } = data;
       updateMutation.mutate(updateData);
     } else {
       createMutation.mutate(data);

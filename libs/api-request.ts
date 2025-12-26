@@ -6,7 +6,8 @@ import Cookies from "js-cookie";
 // Token storage keys
 const ACCESS_TOKEN_KEY = "access_token";
 const UNAUTHORIZED_STATUS = 401;
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE_URL = "http://localhost:3000";
 
 // Create axios instance
 const axiosInstance = axios.create({
@@ -39,7 +40,7 @@ export const tokenManager = {
   },
 
   clearTokens: () => {
-    Cookies.remove(ACCESS_TOKEN_KEY);
+    // Cookies.remove(ACCESS_TOKEN_KEY);
   },
 
   hasValidTokens: (): boolean => {
@@ -60,7 +61,7 @@ axiosInstance.interceptors.response.use(
   },
   (error) => {
     if (error.response && error.response.status === UNAUTHORIZED_STATUS) {
-      window.location.href = `${process.env.NEXT_PUBLIC_HOSTNAME}/login`;
+      // window.location.href = `${process.env.NEXT_PUBLIC_HOSTNAME}/login`;
     }
 
     return Promise.reject(error);
