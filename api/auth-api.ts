@@ -88,9 +88,10 @@ export const logoutApi = async (): Promise<void> => {
 export const getCurrentUser = async (): Promise<User> => {
   try {
     const response = await api.get<CurrentUserResponse>(AUTH_API.ME);
-    const result = currentUserResponseSchema.parse(response.data);
-    return result.data;
+
+    return response.data.data;
   } catch (error: unknown) {
+    console.error("Get current user error:", error);
     throw error;
   }
 };
@@ -103,12 +104,14 @@ export const checkAuthStatus = async (): Promise<boolean> => {
     if (!tokenManager.hasValidTokens()) {
       return false;
     }
-
+    console.log("Tokens found, validating...");
     // Try to fetch current user to validate token
     await getCurrentUser();
+    console.log("User is authenticated");
     return true;
   } catch {
     // If user fetch fails, clear tokens and return false
+    console.log("User is not authenticated, clearing tokens");
     tokenManager.clearTokens();
     return false;
   }
