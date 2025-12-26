@@ -40,21 +40,21 @@ export function toBackendTableFormat(
 
 /**
  * Transform backend table data to frontend format
- * Converts snake_case to camelCase
+ * Backend already transforms snake_case to camelCase via ResponseInterceptor
  */
 export function toFrontendTableFormat(table: any): Table {
   return {
     id: table.id,
-    tableNumber: table.table_number,
+    tableNumber: table.tableNumber,
+    restaurantId: table.restaurantId,
     capacity: table.capacity,
     location: table.location,
     description: table.description,
     status: table.status,
-    qrToken: table.qr_token,
-    qrTokenCreatedAt: table.qr_token_created_at,
+    qrTokenCreatedAt: table.qrTokenCreatedAt,
     qrUrl: table.qrUrl,
-    createdAt: table.created_at,
-    updatedAt: table.updated_at,
+    createdAt: table.createdAt,
+    updatedAt: table.updatedAt,
   };
 }
 

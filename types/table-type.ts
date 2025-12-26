@@ -10,11 +10,11 @@ export type TableStatus = "available" | "inactive" | "occupied";
 export interface Table {
   id: string;
   tableNumber: string;
+  restaurantId: string;
   capacity: number;
   location: string;
   description?: string;
   status: TableStatus;
-  qrToken?: string;
   qrTokenCreatedAt?: string;
   qrUrl?: string;
   createdAt: string;

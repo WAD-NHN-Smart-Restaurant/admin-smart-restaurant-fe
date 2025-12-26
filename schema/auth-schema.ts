@@ -59,7 +59,6 @@ export const userSchema = z.object({
   email: z.string().email(),
   avatar: z.string().optional(),
   role: z.string().optional(),
-  emailConfirmed: z.boolean().optional(),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
 });

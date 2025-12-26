@@ -40,7 +40,7 @@ export function TablesContent() {
     useTableQuery(filters);
 
   const { data, isLoading, error } = tablesQuery;
-  const tables = useMemo(() => data || [], [data]);
+  const tables = data || [];
 
   // Filter tables by search query
   const filteredTables = tables.filter((table) => {
@@ -56,7 +56,7 @@ export function TablesContent() {
     total: tables.length,
     available: tables.filter((t) => t.status === "available").length,
     occupied: tables.filter((t) => t.status === "occupied").length,
-    withQR: tables.filter((t) => t.qrToken).length,
+    withQR: tables.filter((t) => t.qrUrl).length,
   };
 
   // Derive updated selectedTable from current tables data
