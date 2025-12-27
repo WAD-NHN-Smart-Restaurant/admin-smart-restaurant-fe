@@ -41,7 +41,6 @@ export function CategoryCard({
   isStatusUpdating,
 }: CategoryCardProps) {
   const isActive = category.status === CategoryStatus.ACTIVE;
-  const canDelete = category.itemCount === 0;
 
   return (
     <Card
@@ -95,7 +94,6 @@ export function CategoryCard({
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => onDelete(category)}
-                disabled={!canDelete}
                 className="text-destructive"
               >
                 <Trash2 className="mr-2 h-4 w-4" />

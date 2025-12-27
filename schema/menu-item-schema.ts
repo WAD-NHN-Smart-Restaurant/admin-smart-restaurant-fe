@@ -2,9 +2,9 @@ import { z } from "zod";
 
 // Enums
 export enum MenuItemStatus {
-  ACTIVE = "ACTIVE",
-  INACTIVE = "INACTIVE",
-  OUT_OF_STOCK = "OUT_OF_STOCK",
+  AVAILABLE = 'available',
+  UNAVAILABLE = 'unavailable',
+  SOLD_OUT = 'sold_out',
 }
 
 // Base menu item schema for creation/update
@@ -13,9 +13,9 @@ export const menuItemSchema = z.object({
   categoryId: z.string().min(1, "Category is required"),
   price: z.number().min(0, "Price must be positive"),
   description: z.string().optional(),
-  prepTime: z.number().min(0, "Prep time must be positive").optional(),
-  status: z.nativeEnum(MenuItemStatus).default(MenuItemStatus.ACTIVE),
-  isChefRecommendation: z.boolean().default(false),
+  prepTimeMinutes: z.number().min(0, "Prep time must be positive").optional(),
+  status: z.nativeEnum(MenuItemStatus).default(MenuItemStatus.AVAILABLE),
+  isChefRecommended: z.boolean().default(false),
 });
 
 // Form schema for menu item creation/edit form
@@ -24,7 +24,7 @@ export const menuItemFormSchema = z.object({
   categoryId: z.string().min(1, "Category is required"),
   price: z.number().min(0, "Price must be positive"),
   description: z.string().optional(),
-  prepTime: z.number().min(0, "Prep time must be positive").optional(),
+  prepTimeMinutes: z.number().min(0, "Prep time must be positive").optional(),
   status: z
     .string()
     .refine(
@@ -34,14 +34,14 @@ export const menuItemFormSchema = z.object({
         message: "Invalid status",
       },
     ),
-  isChefRecommendation: z.boolean(),
+  isChefRecommended: z.boolean(),
 });
 
 // Status options for dropdowns
 export const MENU_ITEM_STATUS_OPTIONS = [
-  { value: MenuItemStatus.ACTIVE, label: "Active" },
-  { value: MenuItemStatus.INACTIVE, label: "Inactive" },
-  { value: MenuItemStatus.OUT_OF_STOCK, label: "Out of Stock" },
+  { value: MenuItemStatus.AVAILABLE, label: "Available" },
+  { value: MenuItemStatus.UNAVAILABLE, label: "Unavailable" },
+  { value: MenuItemStatus.SOLD_OUT, label: "Sold Out" },
 ] as const;
 
 // Filter schema for menu items list

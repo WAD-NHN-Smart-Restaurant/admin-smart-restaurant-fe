@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "api.qrserver.com",
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn.nhn-restaurant.site',
+        pathname: '/**',
+      },
     ],
   },
   async rewrites() {

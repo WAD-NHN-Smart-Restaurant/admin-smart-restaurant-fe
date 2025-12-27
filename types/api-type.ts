@@ -12,10 +12,10 @@ export interface Pagination {
 }
 
 export interface ApiPaginatedResponse<T> {
-  data?: {
+  success: boolean;
+  data: {
     items: T[];
     pagination: Pagination;
   };
-  code: string;
   message?: string;
 }

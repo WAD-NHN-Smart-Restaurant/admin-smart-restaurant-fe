@@ -17,8 +17,8 @@ export interface Category {
 }
 
 export enum CategoryStatus {
-  ACTIVE = "ACTIVE",
-  INACTIVE = "INACTIVE",
+  ACTIVE = "active",
+  INACTIVE = "inactive",
 }
 
 // Re-export schema types to maintain compatibility

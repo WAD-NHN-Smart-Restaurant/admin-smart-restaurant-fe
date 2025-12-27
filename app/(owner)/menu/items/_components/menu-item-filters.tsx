@@ -51,9 +51,9 @@ export function MenuItemFilters({
   const statusOptions = useMemo(
     () => [
       { value: "all", label: "All Status" },
-      { value: MenuItemStatus.ACTIVE, label: "Active" },
-      { value: MenuItemStatus.INACTIVE, label: "Inactive" },
-      { value: MenuItemStatus.OUT_OF_STOCK, label: "Out of Stock" },
+      { value: MenuItemStatus.AVAILABLE, label: "Available" },
+      { value: MenuItemStatus.UNAVAILABLE, label: "Unavailable" },
+      { value: MenuItemStatus.SOLD_OUT, label: "Sold Out" },
     ],
     [],
   );
