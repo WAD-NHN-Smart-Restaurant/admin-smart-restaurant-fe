@@ -29,8 +29,6 @@ export function DeleteCategoryDialog({
 }: DeleteCategoryDialogProps) {
   if (!category) return null;
 
-  const canDelete = category.itemCount === 0;
-
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent>
@@ -77,27 +75,10 @@ export function DeleteCategoryDialog({
               </div>
             </div>
 
-            {!canDelete && (
-              <div className="bg-destructive/10 border border-destructive/20 p-3 rounded-md">
-                <div className="flex items-center gap-2 text-destructive">
-                  <AlertTriangle className="h-4 w-4" />
-                  <span className="font-medium">
-                    Cannot delete this category
-                  </span>
-                </div>
-                <p className="text-sm text-destructive/80 mt-1">
-                  This category has {category.itemCount} active menu items.
-                  Please remove or move these items to another category first.
-                </p>
-              </div>
-            )}
-
-            {canDelete && (
-              <p className="text-destructive">
-                This action cannot be undone. The category will be permanently
-                removed from your system.
-              </p>
-            )}
+            <p className="text-destructive">
+              This action cannot be undone. The category will be permanently
+              removed from your system.
+            </p>
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -105,7 +86,7 @@ export function DeleteCategoryDialog({
           <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
-            disabled={isLoading || !canDelete}
+            disabled={isLoading}
             className="bg-destructive hover:bg-destructive/90"
           >
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

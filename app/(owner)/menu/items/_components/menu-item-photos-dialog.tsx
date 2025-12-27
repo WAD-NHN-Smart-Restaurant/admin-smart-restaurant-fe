@@ -49,7 +49,7 @@ export const MenuItemPhotosDialog = memo(function MenuItemPhotosDialog({
   const deleteMutation = useDeleteMenuItemPhotoMutation();
   const setPrimaryMutation = useSetPrimaryMenuItemPhotoMutation();
 
-  const photos = useMemo(() => menuItem?.photos || [], [menuItem?.photos]);
+  const photos = useMemo(() => menuItem?.menuItemPhotos || [], [menuItem?.menuItemPhotos]);
 
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {

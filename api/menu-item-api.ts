@@ -11,7 +11,15 @@ import { ApiResponse, ApiPaginatedResponse } from "@/types/api-type";
 // Get menu items with filtering and pagination
 export const getMenuItems = async (
   filters?: MenuItemFilter,
-): Promise<ApiPaginatedResponse<MenuItem>> => {
+): Promise<{
+  items: MenuItem[];
+  pagination: {
+    total: number;
+    totalPages: number;
+    page: number;
+    limit: number;
+  };
+}> => {
   const params = new URLSearchParams();
 
   if (filters?.search) params.append("search", filters.search);
@@ -22,10 +30,22 @@ export const getMenuItems = async (
   if (filters?.page) params.append("page", filters.page.toString());
   if (filters?.limit) params.append("limit", filters.limit.toString());
 
-  const response = await api.get<ApiPaginatedResponse<MenuItem>>(
+  const response = await api.get<{
+    success: boolean;
+    data: {
+      items: MenuItem[];
+      pagination: {
+        total: number;
+        totalPages: number;
+        page: number;
+        limit: number;
+      };
+    };
+    message?: string;
+  }>(
     `/api/admin/menu/items?${params.toString()}`,
   );
-  return response.data;
+  return response.data.data;
 };
 
 // Get single menu item by ID

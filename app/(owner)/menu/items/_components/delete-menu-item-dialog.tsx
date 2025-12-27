@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useCallback } from "react";
-import { MenuItem } from "@/types/menu-item-type";
+import { MenuItem, MenuItemStatus } from "@/types/menu-item-type";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -72,16 +72,16 @@ export const DeleteMenuItemDialog = memo(function DeleteMenuItemDialog({
             <div className="flex flex-col items-end gap-2 ml-4">
               <Badge
                 variant={
-                  menuItem.status === "ACTIVE"
+                  menuItem.status === MenuItemStatus.AVAILABLE
                     ? "default"
-                    : menuItem.status === "INACTIVE"
+                    : menuItem.status === MenuItemStatus.UNAVAILABLE
                       ? "secondary"
                       : "destructive"
                 }
               >
                 {menuItem.status}
               </Badge>
-              {menuItem.isChefRecommendation && (
+              {menuItem.isChefRecommended && (
                 <Badge
                   variant="outline"
                   className="text-yellow-700 border-yellow-300"

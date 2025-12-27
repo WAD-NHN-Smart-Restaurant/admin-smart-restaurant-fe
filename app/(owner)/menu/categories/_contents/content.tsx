@@ -86,10 +86,7 @@ export function Content() {
       updateMutation.mutate(
         {
           id: selectedCategory.id,
-          data: {
-            ...data,
-            id: selectedCategory.id,
-          },
+          data: data, // Remove the id from data since it's passed separately
         },
         {
           onSuccess: () => {

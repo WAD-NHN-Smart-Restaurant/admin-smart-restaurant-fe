@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   menuItemFormSchema,
   MenuItemFormData,
+  MenuItemStatus,
 } from "@/schema/menu-item-schema";
 import { MenuItem } from "@/types/menu-item-type";
 import { Category } from "@/types/category-type";
@@ -14,6 +15,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -64,9 +66,9 @@ export const MenuItemFormDialog = memo(function MenuItemFormDialog({
         categoryId: initialData.categoryId,
         price: initialData.price,
         description: initialData.description || "",
-        prepTime: initialData.prepTime || undefined,
+        prepTimeMinutes: initialData.prepTimeMinutes || undefined,
         status: initialData.status,
-        isChefRecommendation: initialData.isChefRecommendation,
+        isChefRecommended: initialData.isChefRecommended || false,
       };
     }
     return {
@@ -74,9 +76,9 @@ export const MenuItemFormDialog = memo(function MenuItemFormDialog({
       categoryId: "",
       price: 0,
       description: "",
-      prepTime: undefined,
-      status: "ACTIVE",
-      isChefRecommendation: false,
+      prepTimeMinutes: undefined,
+      status: MenuItemStatus.AVAILABLE,
+      isChefRecommended: false,
     };
   }, [mode, initialData]);
 
@@ -113,6 +115,11 @@ export const MenuItemFormDialog = memo(function MenuItemFormDialog({
           <DialogTitle>
             {mode === "create" ? "Add New Menu Item" : "Edit Menu Item"}
           </DialogTitle>
+          <DialogDescription>
+            {mode === "create"
+              ? "Fill in the details below to add a new menu item to your restaurant."
+              : "Update the menu item details below."}
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -193,7 +200,7 @@ export const MenuItemFormDialog = memo(function MenuItemFormDialog({
               {/* Prep Time */}
               <FormField
                 control={form.control}
-                name="prepTime"
+                name="prepTimeMinutes"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Prep Time (minutes)</FormLabel>
@@ -267,7 +274,7 @@ export const MenuItemFormDialog = memo(function MenuItemFormDialog({
             {/* Chef's Recommendation */}
             <FormField
               control={form.control}
-              name="isChefRecommendation"
+              name="isChefRecommended"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
