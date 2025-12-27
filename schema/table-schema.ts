@@ -22,8 +22,6 @@ export const tableFilterSchema = z.object({
   status: z.enum(["available", "inactive", "occupied"]).optional(),
   location: z.string().optional(),
   search: z.string().optional(),
-  sortBy: z
-    .enum(["tableNumber", "capacity", "createdAt", "location"])
-    .optional(),
+  sortBy: z.enum(["tableNumber", "capacity", "createdAt"]).optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 });

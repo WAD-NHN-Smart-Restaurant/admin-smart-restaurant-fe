@@ -1,5 +1,7 @@
 import { Metadata } from "next";
 import { GuestMenuPreviewContent } from "./_contents/content";
+import { Suspense } from "react";
+import { PageLoadingSkeleton } from "@/components/page-loading-skeleton";
 
 export const metadata: Metadata = {
   title: "Guest Menu Preview | Smart Restaurant",
@@ -7,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function GuestMenuPreviewPage() {
-  return <GuestMenuPreviewContent />;
+  return (
+    <Suspense fallback={<PageLoadingSkeleton />}>
+      <GuestMenuPreviewContent />
+    </Suspense>
+  );
 }
