@@ -39,8 +39,7 @@ export function TablesContent() {
   const { tablesQuery, deleteMutation, statusMutation, generateQRMutation } =
     useTableQuery(filters);
 
-  const { data, isLoading, error } = tablesQuery;
-  const tables = data || [];
+  const { data: tables = [], isLoading, error } = tablesQuery;
 
   // Filter tables by search query
   const filteredTables = tables.filter((table) => {

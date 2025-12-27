@@ -17,6 +17,9 @@ export const PROTECTED_PATHS = {
     ITEMS: {
       INDEX: "/menu/items",
     },
+    MODIFIERS: {
+      INDEX: "/menu/modifiers",
+    },
   },
 };
 

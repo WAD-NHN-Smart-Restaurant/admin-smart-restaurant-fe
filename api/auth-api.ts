@@ -15,7 +15,6 @@ import {
 } from "@/types/auth-type";
 import {
   registerResponseSchema,
-  currentUserResponseSchema,
   confirmEmailResponseSchema,
   resetPasswordResponseSchema,
   updatePasswordResponseSchema,

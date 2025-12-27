@@ -60,7 +60,7 @@ axiosInstance.interceptors.response.use(
   },
   (error) => {
     if (error.response && error.response.status === UNAUTHORIZED_STATUS) {
-      // window.location.href = `${process.env.NEXT_PUBLIC_HOSTNAME}/login`;
+      window.location.href = `${window.origin}/login`;
     }
 
     return Promise.reject(error);

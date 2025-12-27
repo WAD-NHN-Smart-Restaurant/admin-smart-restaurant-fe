@@ -16,6 +16,6 @@ export interface ApiPaginatedResponse<T> {
     items: T[];
     pagination: Pagination;
   };
-  code: string;
+  success: string;
   message?: string;
 }

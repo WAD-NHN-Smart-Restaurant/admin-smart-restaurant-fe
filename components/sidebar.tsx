@@ -12,6 +12,7 @@ import {
   X,
   ForkKnife,
   Grid3x3,
+  Tag,
 } from "lucide-react";
 import { PATHS } from "@/data/path";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,11 @@ const navItems: NavItem[] = [
     title: "Menu Items",
     href: PATHS.MENU.ITEMS.INDEX,
     icon: <ForkKnife className="h-5 w-5" />,
+  },
+  {
+    title: "Modifiers",
+    href: PATHS.MENU.MODIFIERS.INDEX,
+    icon: <Tag className="h-5 w-5" />,
   },
 ];
 
