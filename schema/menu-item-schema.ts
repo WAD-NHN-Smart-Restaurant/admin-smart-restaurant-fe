@@ -2,9 +2,9 @@ import { z } from "zod";
 
 // Enums
 export enum MenuItemStatus {
-  AVAILABLE = 'available',
-  UNAVAILABLE = 'unavailable',
-  SOLD_OUT = 'sold_out',
+  AVAILABLE = "available",
+  UNAVAILABLE = "unavailable",
+  SOLD_OUT = "sold_out",
 }
 
 // Base menu item schema for creation/update
