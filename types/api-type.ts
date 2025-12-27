@@ -11,11 +11,13 @@ export interface Pagination {
   limit: number;
 }
 
+export interface PaginationItems<T> {
+  items: T[];
+  pagination: Pagination;
+}
+
 export interface ApiPaginatedResponse<T> {
-  data?: {
-    items: T[];
-    pagination: Pagination;
-  };
-  success: string;
+  success: boolean;
+  data: PaginationItems<T>;
   message?: string;
 }

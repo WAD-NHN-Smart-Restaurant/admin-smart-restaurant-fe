@@ -44,12 +44,16 @@ export const MenuItemPhotosDialog = memo(function MenuItemPhotosDialog({
   menuItem,
 }: MenuItemPhotosDialogProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const uploadMutation = useUploadMenuItemPhotosMutation();
   const deleteMutation = useDeleteMenuItemPhotoMutation();
   const setPrimaryMutation = useSetPrimaryMenuItemPhotoMutation();
 
-  const photos = useMemo(() => menuItem?.photos || [], [menuItem?.photos]);
+  const photos = useMemo(
+    () => menuItem?.menuItemPhotos || [],
+    [menuItem?.menuItemPhotos],
+  );
 
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,6 +62,29 @@ export const MenuItemPhotosDialog = memo(function MenuItemPhotosDialog({
     },
     [],
   );
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files).filter((file) =>
+      file.type.startsWith("image/"),
+    );
+
+    if (files.length > 0) {
+      setSelectedFiles(files);
+    }
+  }, []);
 
   const handleUpload = useCallback(() => {
     if (!menuItem || selectedFiles.length === 0) return;
@@ -175,7 +202,16 @@ export const MenuItemPhotosDialog = memo(function MenuItemPhotosDialog({
             </div>
 
             <label htmlFor="photo-upload" className="block cursor-pointer">
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-gray-400 transition-colors">
+              <div
+                className={`border-2 border-dashed rounded-lg p-6 transition-colors ${
+                  isDragOver
+                    ? "border-blue-400 bg-blue-50"
+                    : "border-gray-300 hover:border-gray-400"
+                }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
                 <div className="text-center">
                   <Upload className="mx-auto h-12 w-12 text-gray-400" />
                   <div className="mt-4">

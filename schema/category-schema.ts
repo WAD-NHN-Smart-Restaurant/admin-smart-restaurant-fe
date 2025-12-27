@@ -22,9 +22,7 @@ export const categoryFilterSchema = z.object({
 });
 
 export const createCategorySchema = categorySchema;
-export const updateCategorySchema = categorySchema.extend({
-  id: z.string().min(1, "Category ID is required"),
-});
+export const updateCategorySchema = categorySchema;
 
 export type CategoryForm = z.infer<typeof categorySchema>;
 export type CategoryFilterForm = z.infer<typeof categoryFilterSchema>;

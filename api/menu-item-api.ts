@@ -6,12 +6,16 @@ import {
   UpdateMenuItemRequest,
   MenuItemPhoto,
 } from "@/types/menu-item-type";
-import { ApiResponse, ApiPaginatedResponse } from "@/types/api-type";
+import {
+  ApiResponse,
+  ApiPaginatedResponse,
+  PaginationItems,
+} from "@/types/api-type";
 
 // Get menu items with filtering and pagination
 export const getMenuItems = async (
   filters?: MenuItemFilter,
-): Promise<ApiPaginatedResponse<MenuItem>> => {
+): Promise<PaginationItems<MenuItem>> => {
   const params = new URLSearchParams();
 
   if (filters?.search) params.append("search", filters.search);
@@ -25,7 +29,7 @@ export const getMenuItems = async (
   const response = await api.get<ApiPaginatedResponse<MenuItem>>(
     `/api/admin/menu/items?${params.toString()}`,
   );
-  return response.data;
+  return response.data.data;
 };
 
 // Get single menu item by ID

@@ -39,11 +39,11 @@ export function MenuItemCard({
 }: MenuItemCardProps) {
   const getStatusColor = (status: MenuItemStatus) => {
     switch (status) {
-      case MenuItemStatus.ACTIVE:
+      case MenuItemStatus.AVAILABLE:
         return "bg-green-100 text-green-800 hover:bg-green-200";
-      case MenuItemStatus.INACTIVE:
+      case MenuItemStatus.UNAVAILABLE:
         return "bg-gray-100 text-gray-800 hover:bg-gray-200";
-      case MenuItemStatus.OUT_OF_STOCK:
+      case MenuItemStatus.SOLD_OUT:
         return "bg-red-100 text-red-800 hover:bg-red-200";
       default:
         return "bg-gray-100 text-gray-800 hover:bg-gray-200";
@@ -52,16 +52,19 @@ export function MenuItemCard({
 
   const getStatusLabel = (status: MenuItemStatus) => {
     switch (status) {
-      case MenuItemStatus.ACTIVE:
-        return "Active";
-      case MenuItemStatus.INACTIVE:
-        return "Inactive";
-      case MenuItemStatus.OUT_OF_STOCK:
-        return "Out of Stock";
+      case MenuItemStatus.AVAILABLE:
+        return "Available";
+      case MenuItemStatus.UNAVAILABLE:
+        return "Unavailable";
+      case MenuItemStatus.SOLD_OUT:
+        return "Sold Out";
       default:
         return status;
     }
   };
+
+  // Find primary photo
+  const primaryPhoto = item.menuItemPhotos.find(photo => photo.isPrimary);
 
   return (
     <Card className="group hover:shadow-md transition-all duration-200 border">
@@ -69,9 +72,9 @@ export function MenuItemCard({
         {/* Header with image and status */}
         <div className="relative mb-3">
           <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
-            {item.primaryPhoto ? (
+            {primaryPhoto ? (
               <Image
-                src={item.primaryPhoto.url}
+                src={primaryPhoto.url}
                 alt={item.name}
                 fill
                 className="object-cover"
@@ -91,7 +94,7 @@ export function MenuItemCard({
           </div>
 
           {/* Chef recommendation */}
-          {item.isChefRecommendation && (
+          {item.isChefRecommended && (
             <div className="absolute top-2 right-2">
               <Badge
                 variant="secondary"
@@ -143,7 +146,7 @@ export function MenuItemCard({
             </DropdownMenu>
           </div>
 
-          <p className="text-sm text-muted-foreground">{item.categoryName}</p>
+          <p className="text-sm text-muted-foreground">{item.menuCategories.name}</p>
 
           {item.description && (
             <p className="text-sm text-gray-600 line-clamp-2">
@@ -161,17 +164,17 @@ export function MenuItemCard({
                 </span>
               </div>
 
-              {item.prepTime && (
+              {item.prepTimeMinutes && (
                 <div className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  <span>{item.prepTime}m</span>
+                  <span>{item.prepTimeMinutes}m</span>
                 </div>
               )}
             </div>
 
-            <div className="text-xs text-muted-foreground">
+            {/* <div className="text-xs text-muted-foreground">
               {item.photos.length} photo{item.photos.length !== 1 ? "s" : ""}
-            </div>
+            </div> */}
           </div>
         </div>
       </CardContent>

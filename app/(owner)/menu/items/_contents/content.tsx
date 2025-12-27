@@ -51,17 +51,17 @@ export function Content() {
     [categoriesQuery.data],
   );
   const menuItems = useMemo(
-    () => menuItemsQuery.data?.data?.items || [],
+    () => menuItemsQuery.data?.items || [],
     [menuItemsQuery.data],
   );
   const pagination = useMemo(
-    () => menuItemsQuery.data?.data?.pagination,
+    () => menuItemsQuery.data?.pagination,
     [menuItemsQuery.data],
   );
 
   const totalItems = useMemo(() => pagination?.total || 0, [pagination]);
   const activeItems = useMemo(
-    () => menuItems.filter((item) => item.status === "ACTIVE").length,
+    () => menuItems.filter((item) => item.status === MenuItemStatus.AVAILABLE).length,
     [menuItems],
   );
 
@@ -111,9 +111,9 @@ export function Content() {
       categoryId: string;
       price: number;
       description?: string;
-      prepTime?: number;
+      prepTimeMinutes?: number;
       status: string;
-      isChefRecommendation: boolean;
+      isChefRecommended: boolean;
     }) => {
       const formattedData = {
         ...data,

@@ -11,10 +11,8 @@ import {
   deleteMenuItemPhoto,
   setPrimaryMenuItemPhoto,
 } from "@/api/menu-item-api";
-import {
-  MenuItemFilterForm,
-  UpdateMenuItemForm,
-} from "@/schema/menu-item-schema";
+import { MenuItemFilterForm } from "@/schema/menu-item-schema";
+import { UpdateMenuItemRequest } from "@/types/menu-item-type";
 
 // Query keys
 const MENU_ITEM_KEYS = {
@@ -71,9 +69,6 @@ export const useMenuItemQuery = (id: string, enabled: boolean = true) => {
   );
 };
 
-/**
- * Hook to create new menu item
- */
 export const useCreateMenuItemMutation = () => {
   const queryClient = useQueryClient();
 
@@ -93,7 +88,7 @@ export const useUpdateMenuItemMutation = () => {
   const queryClient = useQueryClient();
 
   return useSafeMutation(
-    ({ id, data }: { id: string; data: UpdateMenuItemForm }) =>
+    ({ id, data }: { id: string; data: UpdateMenuItemRequest }) =>
       updateMenuItem(id, data),
     {
       successMessage: "Menu item updated successfully!",

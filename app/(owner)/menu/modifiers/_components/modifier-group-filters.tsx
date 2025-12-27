@@ -107,9 +107,9 @@ export function ModifierGroupFilters({
           </div>
 
           {/* Filters Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="flex md:flex-row flex-col gap-4">
             {/* Status Filter */}
-            <div>
+            <div className="flex-1">
               <label className="text-sm font-medium text-gray-700 mb-1 block">
                 Status
               </label>
@@ -118,7 +118,7 @@ export function ModifierGroupFilters({
                 onValueChange={handleStatusChange}
                 disabled={isLoading}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
                 <SelectContent>
@@ -134,7 +134,7 @@ export function ModifierGroupFilters({
             </div>
 
             {/* Selection Type Filter */}
-            <div>
+            <div className="flex-1">
               <label className="text-sm font-medium text-gray-700 mb-1 block">
                 Selection Type
               </label>
@@ -143,7 +143,7 @@ export function ModifierGroupFilters({
                 onValueChange={handleSelectionTypeChange}
                 disabled={isLoading}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="All Types" />
                 </SelectTrigger>
                 <SelectContent>
@@ -159,7 +159,7 @@ export function ModifierGroupFilters({
             </div>
 
             {/* Sort By */}
-            <div>
+            <div className="flex-1">
               <label className="text-sm font-medium text-gray-700 mb-1 block">
                 Sort By
               </label>
@@ -168,7 +168,7 @@ export function ModifierGroupFilters({
                 onValueChange={handleSortByChange}
                 disabled={isLoading}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -180,7 +180,7 @@ export function ModifierGroupFilters({
             </div>
 
             {/* Sort Order */}
-            <div>
+            <div className="flex-1">
               <label className="text-sm font-medium text-gray-700 mb-1 block">
                 Order
               </label>
@@ -189,7 +189,7 @@ export function ModifierGroupFilters({
                 onValueChange={handleSortOrderChange}
                 disabled={isLoading}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
