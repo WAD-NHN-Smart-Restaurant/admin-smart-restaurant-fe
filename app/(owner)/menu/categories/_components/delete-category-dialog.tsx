@@ -75,10 +75,10 @@ export function DeleteCategoryDialog({
               </div>
             </div>
 
-            <p className="text-destructive">
+            <div className="text-destructive">
               This action cannot be undone. The category will be permanently
               removed from your system.
-            </p>
+            </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
 

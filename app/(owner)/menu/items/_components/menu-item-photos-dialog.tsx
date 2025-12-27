@@ -1,7 +1,7 @@
 "use client";
 
-import { memo, useCallback, useState, useMemo } from "react";
-import { MenuItem } from "@/types/menu-item-type";
+import { memo, useCallback, useState, useEffect } from "react";
+import { MenuItem, MenuItemPhoto } from "@/types/menu-item-type";
 import {
   useUploadMenuItemPhotosMutation,
   useDeleteMenuItemPhotoMutation,
@@ -36,6 +36,7 @@ interface MenuItemPhotosDialogProps {
   isOpen: boolean;
   onClose: () => void;
   menuItem: MenuItem | null;
+  onMenuItemUpdate?: (updatedMenuItem: MenuItem) => void;
 }
 
 export const MenuItemPhotosDialog = memo(function MenuItemPhotosDialog({
@@ -45,15 +46,21 @@ export const MenuItemPhotosDialog = memo(function MenuItemPhotosDialog({
 }: MenuItemPhotosDialogProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [localPhotos, setLocalPhotos] = useState<MenuItemPhoto[]>([]);
 
   const uploadMutation = useUploadMenuItemPhotosMutation();
   const deleteMutation = useDeleteMenuItemPhotoMutation();
   const setPrimaryMutation = useSetPrimaryMenuItemPhotoMutation();
 
-  const photos = useMemo(
-    () => menuItem?.menuItemPhotos || [],
-    [menuItem?.menuItemPhotos],
-  );
+  // Sync local photos with menuItem photos when menuItem changes
+  useEffect(() => {
+    console.log("Syncing local photos with menuItem photos", menuItem);
+    if (menuItem?.menuItemPhotos) {
+      setLocalPhotos(menuItem.menuItemPhotos);
+    }
+  }, [menuItem]);
+
+  const photos = localPhotos;
 
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -131,6 +138,10 @@ export const MenuItemPhotosDialog = memo(function MenuItemPhotosDialog({
         {
           onSuccess: () => {
             toast.success("Photo deleted successfully");
+            // Update local photos by removing the deleted photo
+            setLocalPhotos((prev) =>
+              prev.filter((photo) => photo.id !== photoId),
+            );
           },
           onError: (error: unknown) => {
             toast.error(
@@ -155,6 +166,13 @@ export const MenuItemPhotosDialog = memo(function MenuItemPhotosDialog({
         {
           onSuccess: () => {
             toast.success("Primary photo updated");
+            // Update local photos by setting the new primary and unsetting others
+            setLocalPhotos((prev) =>
+              prev.map((photo) => ({
+                ...photo,
+                isPrimary: photo.id === photoId,
+              })),
+            );
           },
           onError: (error: unknown) => {
             toast.error(
@@ -177,7 +195,7 @@ export const MenuItemPhotosDialog = memo(function MenuItemPhotosDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-200 max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ImageIcon className="h-5 w-5" />

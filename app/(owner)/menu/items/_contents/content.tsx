@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { MenuItem, MenuItemStatus } from "@/types/menu-item-type";
 import { MenuItemFilterForm } from "@/schema/menu-item-schema";
 import {
@@ -61,10 +61,22 @@ export function Content() {
 
   const totalItems = useMemo(() => pagination?.total || 0, [pagination]);
   const activeItems = useMemo(
-    () => menuItems.filter((item) => item.status === MenuItemStatus.AVAILABLE).length,
+    () =>
+      menuItems.filter((item) => item.status === MenuItemStatus.AVAILABLE)
+        .length,
     [menuItems],
   );
-
+  useEffect(() => {
+    if (menuItems && selectedMenuItem) {
+      const updatedItem = menuItems.find(
+        (item) => item.id === selectedMenuItem.id,
+      );
+      if (updatedItem) {
+        setSelectedMenuItem(updatedItem);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [menuItems]);
   // Event handlers
   const handleFilterChange = useCallback(
     (newFilters: Partial<MenuItemFilterForm>) => {
@@ -154,6 +166,10 @@ export function Content() {
     }
   }, [selectedMenuItem, deleteMutation]);
 
+  const handleMenuItemUpdate = useCallback((updatedMenuItem: MenuItem) => {
+    setSelectedMenuItem(updatedMenuItem);
+  }, []);
+
   // Loading and error states
   const isLoading = menuItemsQuery.isLoading;
 
@@ -230,6 +246,7 @@ export function Content() {
           setSelectedMenuItem(null);
         }}
         menuItem={selectedMenuItem}
+        onMenuItemUpdate={handleMenuItemUpdate}
       />
     </div>
   );
