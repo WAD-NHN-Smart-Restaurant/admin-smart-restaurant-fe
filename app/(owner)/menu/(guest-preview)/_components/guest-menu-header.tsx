@@ -17,12 +17,7 @@ export function GuestMenuHeader({
       <div className="px-6 py-4">
         <div className="mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Guest Menu Preview
-            </h1>
-            <p className="text-sm text-gray-600">
-              Preview how your menu appears to guests
-            </p>
+            <h1 className="text-2xl font-bold text-gray-900">Guest Menu</h1>
           </div>
         </div>
 

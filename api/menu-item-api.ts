@@ -6,6 +6,7 @@ import {
   UpdateMenuItemRequest,
   MenuItemPhoto,
 } from "@/types/menu-item-type";
+import { AttachModifierGroupsForm } from "@/schema/menu-item-schema";
 import {
   ApiResponse,
   ApiPaginatedResponse,
@@ -108,5 +109,20 @@ export const setPrimaryMenuItemPhoto = async (
 ): Promise<void> => {
   await api.patch(
     `/api/admin/menu/items/${menuItemId}/photos/${photoId}/primary`,
+  );
+};
+
+// Attach modifier groups to menu item
+export const attachModifierGroupsToMenuItem = async (
+  menuItemId: string,
+  data: AttachModifierGroupsForm,
+): Promise<void> => {
+  const requestData = {
+    group_ids: data.groupIds, // Convert camelCase to snake_case for backend
+  };
+
+  await api.post(
+    `/api/admin/menu/items/${menuItemId}/modifier-groups`,
+    requestData,
   );
 };

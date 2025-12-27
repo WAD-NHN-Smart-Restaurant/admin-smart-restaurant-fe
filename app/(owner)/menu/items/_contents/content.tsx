@@ -16,6 +16,7 @@ import { MenuItemGrid } from "../_components/menu-item-grid";
 import { MenuItemFormDialog } from "../_components/menu-item-form-dialog";
 import { DeleteMenuItemDialog } from "../_components/delete-menu-item-dialog";
 import { MenuItemPhotosDialog } from "../_components/menu-item-photos-dialog";
+import { MenuItemModifiersDialog } from "../_components/menu-item-modifiers-dialog";
 
 export function Content() {
   // Filter state
@@ -34,6 +35,7 @@ export function Content() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isPhotosDialogOpen, setIsPhotosDialogOpen] = useState(false);
+  const [isModifiersDialogOpen, setIsModifiersDialogOpen] = useState(false);
   const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(
     null,
   );
@@ -107,6 +109,11 @@ export function Content() {
   const handleManagePhotos = useCallback((item: MenuItem) => {
     setSelectedMenuItem(item);
     setIsPhotosDialogOpen(true);
+  }, []);
+
+  const handleManageModifiers = useCallback((item: MenuItem) => {
+    setSelectedMenuItem(item);
+    setIsModifiersDialogOpen(true);
   }, []);
 
   const handleViewMenuItem = useCallback(
@@ -200,6 +207,7 @@ export function Content() {
         onDeleteItem={handleDeleteMenuItem}
         onViewItem={handleViewMenuItem}
         onManagePhotos={handleManagePhotos}
+        onManageModifiers={handleManageModifiers}
       />
 
       {/* Create Dialog */}
@@ -243,6 +251,17 @@ export function Content() {
         isOpen={isPhotosDialogOpen}
         onClose={() => {
           setIsPhotosDialogOpen(false);
+          setSelectedMenuItem(null);
+        }}
+        menuItem={selectedMenuItem}
+        onMenuItemUpdate={handleMenuItemUpdate}
+      />
+
+      {/* Modifier Groups Dialog */}
+      <MenuItemModifiersDialog
+        isOpen={isModifiersDialogOpen}
+        onClose={() => {
+          setIsModifiersDialogOpen(false);
           setSelectedMenuItem(null);
         }}
         menuItem={selectedMenuItem}

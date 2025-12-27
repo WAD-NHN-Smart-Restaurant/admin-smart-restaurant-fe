@@ -10,8 +10,12 @@ import {
   uploadMenuItemPhotos,
   deleteMenuItemPhoto,
   setPrimaryMenuItemPhoto,
+  attachModifierGroupsToMenuItem,
 } from "@/api/menu-item-api";
-import { MenuItemFilterForm } from "@/schema/menu-item-schema";
+import {
+  MenuItemFilterForm,
+  AttachModifierGroupsForm,
+} from "@/schema/menu-item-schema";
 import { UpdateMenuItemRequest } from "@/types/menu-item-type";
 
 // Query keys
@@ -173,6 +177,33 @@ export const useSetPrimaryMenuItemPhotoMutation = () => {
       successMessage: "Primary photo set successfully!",
       onSuccess: (_, { menuItemId }) => {
         // Invalidate specific item to refresh photos
+        queryClient.invalidateQueries({
+          queryKey: MENU_ITEM_KEYS.detail(menuItemId),
+        });
+        queryClient.invalidateQueries({ queryKey: MENU_ITEM_KEYS.lists() });
+      },
+    },
+  );
+};
+
+/**
+ * Hook to attach modifier groups to menu item
+ */
+export const useAttachModifierGroupsMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useSafeMutation(
+    ({
+      menuItemId,
+      data,
+    }: {
+      menuItemId: string;
+      data: AttachModifierGroupsForm;
+    }) => attachModifierGroupsToMenuItem(menuItemId, data),
+    {
+      successMessage: "Modifier groups attached successfully!",
+      onSuccess: (_, { menuItemId }) => {
+        // Invalidate specific item and list to refresh the data
         queryClient.invalidateQueries({
           queryKey: MENU_ITEM_KEYS.detail(menuItemId),
         });

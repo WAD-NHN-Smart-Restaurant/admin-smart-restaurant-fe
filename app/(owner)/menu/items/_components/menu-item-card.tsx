@@ -13,6 +13,7 @@ import {
   Clock,
   DollarSign,
   Crown,
+  Settings,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -28,6 +29,7 @@ interface MenuItemCardProps {
   onDelete: (item: MenuItem) => void;
   onView: (item: MenuItem) => void;
   onManagePhotos: (item: MenuItem) => void;
+  onManageModifiers: (item: MenuItem) => void;
 }
 
 export function MenuItemCard({
@@ -36,6 +38,7 @@ export function MenuItemCard({
   onDelete,
   onView,
   onManagePhotos,
+  onManageModifiers,
 }: MenuItemCardProps) {
   const getStatusColor = (status: MenuItemStatus) => {
     switch (status) {
@@ -134,6 +137,10 @@ export function MenuItemCard({
                 <DropdownMenuItem onClick={() => onManagePhotos(item)}>
                   <Camera className="mr-2 h-4 w-4" />
                   Manage Photos
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onManageModifiers(item)}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Manage Modifiers
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => onDelete(item)}

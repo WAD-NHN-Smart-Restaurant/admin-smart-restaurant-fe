@@ -17,6 +17,7 @@ interface MenuItemGridProps {
   onDeleteItem: (item: MenuItem) => void;
   onViewItem: (item: MenuItem) => void;
   onManagePhotos: (item: MenuItem) => void;
+  onManageModifiers: (item: MenuItem) => void;
 }
 
 export const MenuItemGrid = memo(function MenuItemGrid({
@@ -28,6 +29,7 @@ export const MenuItemGrid = memo(function MenuItemGrid({
   onDeleteItem,
   onViewItem,
   onManagePhotos,
+  onManageModifiers,
 }: MenuItemGridProps) {
   const handlePageChange = useCallback(
     (page: number) => {
@@ -66,6 +68,7 @@ export const MenuItemGrid = memo(function MenuItemGrid({
             onDelete={() => onDeleteItem(item)}
             onView={() => onViewItem(item)}
             onManagePhotos={() => onManagePhotos(item)}
+            onManageModifiers={() => onManageModifiers(item)}
           />
         ))}
       </div>

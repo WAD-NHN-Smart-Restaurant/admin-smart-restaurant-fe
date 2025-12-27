@@ -74,6 +74,11 @@ export const menuItemPhotoSchema = z.object({
     ),
 });
 
+// Attach modifier groups schema
+export const attachModifierGroupsSchema = z.object({
+  groupIds: z.array(z.string().uuid("Invalid group ID")),
+});
+
 // Type inference from schemas
 export type MenuItemForm = z.infer<typeof menuItemSchema>;
 export type MenuItemFormData = z.infer<typeof menuItemFormSchema>;
@@ -81,3 +86,6 @@ export type CreateMenuItemForm = z.infer<typeof menuItemSchema>;
 export type UpdateMenuItemForm = z.infer<typeof menuItemSchema>;
 export type MenuItemFilterForm = z.infer<typeof menuItemFilterSchema>;
 export type MenuItemPhotoForm = z.infer<typeof menuItemPhotoSchema>;
+export type AttachModifierGroupsForm = z.infer<
+  typeof attachModifierGroupsSchema
+>;

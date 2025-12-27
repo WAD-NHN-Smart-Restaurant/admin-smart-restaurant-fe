@@ -123,7 +123,15 @@ function SidebarContent({
       <div className="border-t border-gray-800 p-4">
         <div className="mb-3 flex items-center gap-3 rounded-lg bg-gray-800 p-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-700 text-sm font-bold">
-            JD
+            {user?.name
+              ? user.name
+                  .trim()
+                  .split(/\s+/)
+                  .map((part) => part?.[0] ?? "")
+                  .filter(Boolean)
+                  .join("")
+                  .toUpperCase()
+              : "AD"}
           </div>
           <div className="flex-1">
             <div className="text-sm font-semibold">{user?.name}</div>

@@ -19,6 +19,7 @@ import {
   resetPasswordResponseSchema,
   updatePasswordResponseSchema,
 } from "@/schema/auth-schema";
+import { ApiResponse } from "@/types/api-type";
 
 const AUTH_API = {
   LOGIN: "/api/auth/login",
@@ -86,9 +87,11 @@ export const logoutApi = async (): Promise<void> => {
  */
 export const getCurrentUser = async (): Promise<User> => {
   try {
-    const response = await api.get<CurrentUserResponse>(AUTH_API.ME);
+    const response = await api.get<ApiResponse<CurrentUserResponse>>(
+      AUTH_API.ME,
+    );
 
-    return response.data.data;
+    return response.data.data.data;
   } catch (error: unknown) {
     console.error("Get current user error:", error);
     throw error;

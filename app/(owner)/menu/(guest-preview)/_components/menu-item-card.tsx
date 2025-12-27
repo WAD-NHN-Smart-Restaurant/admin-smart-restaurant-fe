@@ -50,7 +50,7 @@ export function MenuItemCard({ item, onItemClick }: MenuItemCardProps) {
           </div>
 
           {item.description && (
-            <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+            <p className="text-sm text-gray-600 mb-3 line-clamp-1">
               {item.description}
             </p>
           )}
