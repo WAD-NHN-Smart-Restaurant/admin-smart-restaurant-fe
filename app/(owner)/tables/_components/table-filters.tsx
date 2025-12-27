@@ -8,8 +8,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Filter, Search } from "lucide-react";
-import { TableFilter, TableStatus } from "@/types/table-type";
-import { TABLE_LOCATIONS } from "@/types/table-type";
+import { TableFilter, TableStatus, TableLocation } from "@/types/table-type";
 
 interface TableFiltersProps {
   filters: TableFilter;
@@ -87,7 +86,7 @@ export function TableFiltersSection({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Locations</SelectItem>
-                {TABLE_LOCATIONS.map((location) => (
+                {Object.values(TableLocation).map((location) => (
                   <SelectItem key={location} value={location}>
                     {location}
                   </SelectItem>

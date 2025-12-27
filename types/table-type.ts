@@ -33,17 +33,15 @@ export interface QRCodeDownloadOptions {
   includeWifi?: boolean;
 }
 
-export const TABLE_LOCATIONS = [
-  "Indoor",
-  "Outdoor",
-  "Patio",
-  "VIP Room",
-  "Main Hall",
-  "Balcony",
-  "Garden",
-] as const;
-
-export type TableLocation = (typeof TABLE_LOCATIONS)[number];
+export enum TableLocation {
+  INDOOR = "Indoor",
+  OUTDOOR = "Outdoor",
+  PATIO = "Patio",
+  VIP_ROOM = "VIP Room",
+  MAIN_HALL = "Main Hall",
+  BALCONY = "Balcony",
+  GARDEN = "Garden",
+}
 
 export type CreateTableForm = z.infer<typeof tableSchema>;
 export type UpdateTableForm = z.infer<typeof updateTableSchema>;

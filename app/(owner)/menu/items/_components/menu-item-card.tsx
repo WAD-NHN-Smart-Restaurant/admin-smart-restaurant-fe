@@ -64,11 +64,11 @@ export function MenuItemCard({
   };
 
   // Find primary photo
-  const primaryPhoto = item.menuItemPhotos.find(photo => photo.isPrimary);
+  const primaryPhoto = item.menuItemPhotos.find((photo) => photo.isPrimary);
 
   return (
-    <Card className="group hover:shadow-md transition-all duration-200 border">
-      <CardContent className="p-4">
+    <Card className="group hover:shadow-md transition-all duration-200 border py-0 overflow-clip">
+      <CardContent className="p-0">
         {/* Header with image and status */}
         <div className="relative mb-3">
           <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
@@ -108,7 +108,7 @@ export function MenuItemCard({
         </div>
 
         {/* Content */}
-        <div className="space-y-2">
+        <div className="space-y-2 px-4 pb-2">
           <div className="flex justify-between items-start">
             <h3 className="font-semibold text-lg leading-tight line-clamp-2">
               {item.name}
@@ -146,10 +146,12 @@ export function MenuItemCard({
             </DropdownMenu>
           </div>
 
-          <p className="text-sm text-muted-foreground">{item.menuCategories.name}</p>
+          <p className="text-sm text-muted-foreground">
+            {item.menuCategories.name}
+          </p>
 
           {item.description && (
-            <p className="text-sm text-gray-600 line-clamp-2">
+            <p className="text-sm text-gray-600 line-clamp-1">
               {item.description}
             </p>
           )}

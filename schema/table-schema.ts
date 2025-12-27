@@ -1,3 +1,4 @@
+import { TableLocation } from "@/types/table-type";
 import { z } from "zod";
 
 export const tableSchema = z.object({
@@ -10,10 +11,7 @@ export const tableSchema = z.object({
     .int("Capacity must be an integer")
     .min(1, "Capacity must be at least 1")
     .max(20, "Capacity must be at most 20"),
-  location: z
-    .string()
-    .min(1, "Location is required")
-    .max(100, "Location must be less than 100 characters"),
+  location: z.enum(TableLocation),
   description: z.string().max(500, "Description is too long").optional(),
   status: z.enum(["available", "inactive", "occupied"]),
 });

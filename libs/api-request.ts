@@ -63,7 +63,7 @@ axiosInstance.interceptors.response.use(
       window.location.href = `${window.origin}/login`;
     }
 
-    return Promise.reject(error);
+    return Promise.reject(error.response.data);
   },
 );
 

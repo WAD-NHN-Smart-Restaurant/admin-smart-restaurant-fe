@@ -35,7 +35,7 @@ export const useMenuItemsQuery = (filters?: MenuItemFilterForm) => {
     sortBy: "createdAt",
     sortOrder: "desc",
     page: 1,
-    limit: 3,
+    limit: 4,
   };
 
   const queryFilters = filters || defaultFilters;

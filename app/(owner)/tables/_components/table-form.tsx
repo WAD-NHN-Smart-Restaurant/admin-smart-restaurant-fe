@@ -9,7 +9,7 @@ import { tableSchema } from "@/schema/table-schema";
 import { createTable, updateTable } from "@/api/table-api";
 import {
   Table,
-  TABLE_LOCATIONS,
+  TableLocation,
   CreateTableForm,
   UpdateTableForm,
 } from "@/types/table-type";
@@ -49,26 +49,13 @@ export function TableForm({ table, onSuccess }: TableFormProps) {
   const form = useForm<CreateTableForm>({
     resolver: zodResolver(tableSchema),
     defaultValues: {
-      tableNumber: "",
-      capacity: 4,
-      location: "",
-      description: "",
-      status: "available",
+      tableNumber: table?.tableNumber || "",
+      capacity: table?.capacity || 4,
+      location: (table?.location as TableLocation) || TableLocation.INDOOR,
+      description: table?.description || "",
+      status: table?.status || "available",
     },
   });
-
-  // Reset form when table data changes
-  useEffect(() => {
-    if (table) {
-      form.reset({
-        tableNumber: table.tableNumber,
-        capacity: table.capacity,
-        location: table.location,
-        description: table.description || "",
-        status: table.status,
-      });
-    }
-  }, [table, form]);
 
   // Create mutation
   const createMutation = useMutation({
@@ -185,11 +172,14 @@ export function TableForm({ table, onSuccess }: TableFormProps) {
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a location" />
+                    <SelectValue
+                      defaultValue={field.value}
+                      placeholder="Select a location"
+                    />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {TABLE_LOCATIONS.map((location) => (
+                  {Object.values(TableLocation).map((location) => (
                     <SelectItem key={location} value={location}>
                       {location}
                     </SelectItem>
