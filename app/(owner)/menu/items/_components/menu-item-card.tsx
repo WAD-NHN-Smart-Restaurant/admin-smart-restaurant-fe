@@ -153,9 +153,7 @@ export function MenuItemCard({
             </DropdownMenu>
           </div>
 
-          <p className="text-sm text-muted-foreground">
-            {item.menuCategories.name}
-          </p>
+          <p className="text-sm text-muted-foreground">{item.categoryName}</p>
 
           {item.description && (
             <p className="text-sm text-gray-600 line-clamp-1">

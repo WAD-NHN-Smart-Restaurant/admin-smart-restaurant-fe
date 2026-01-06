@@ -193,10 +193,8 @@ export function Content() {
         createOptionMutation.mutate(
           {
             groupId: selectedGroupForOption.id,
-            data: {
-              ...data,
-            } as CreateModifierOptionForm,
-          },
+            ...data,
+          } as CreateModifierOptionForm,
           {
             onSuccess: () => {
               setIsCreateOptionDialogOpen(false);

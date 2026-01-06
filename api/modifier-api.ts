@@ -23,6 +23,7 @@ const MODIFIER_GROUPS_API = {
 };
 
 const MODIFIER_OPTIONS_API = {
+  BASE: "/api/admin/menu/modifier-options",
   BY_ID: (id: string) => `/api/admin/menu/modifier-options/${id}`,
 };
 
@@ -105,13 +106,12 @@ export const deleteModifierGroup = async (
  * Create modifier option for a group
  */
 export const createModifierOption = async (
-  groupId: string,
   data: CreateModifierOptionForm,
 ): Promise<ApiResponse<ModifierOption>> => {
   const response = await api.post<
     CreateModifierOptionForm,
     ApiResponse<ModifierOption>
-  >(MODIFIER_GROUPS_API.OPTIONS(groupId), data);
+  >(MODIFIER_OPTIONS_API.BASE, data);
   return response.data;
 };
 
