@@ -125,11 +125,11 @@ export const useCreateModifierOptionMutation = () => {
   const queryClient = useQueryClient();
 
   return useSafeMutation(
-    ({ groupId, data }: { groupId: string; data: CreateModifierOptionForm }) =>
-      createModifierOption(groupId, data),
+    (data: CreateModifierOptionForm) => createModifierOption(data),
     {
       successMessage: "Modifier option created successfully!",
-      onSuccess: (_, { groupId }) => {
+      onSuccess: (_, data) => {
+        const groupId = data.groupId;
         // Invalidate group detail and groups list
         queryClient.invalidateQueries({
           queryKey: MODIFIER_KEYS.groupDetail(groupId),
