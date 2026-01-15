@@ -86,6 +86,18 @@ export const LoginForm = () => {
             )}
           />
 
+          {/* Forgot Password Link */}
+          <div className="flex justify-end">
+            <Button
+              variant="link"
+              className="p-0 h-auto text-primary hover:text-primary/80"
+              disabled={isLoginLoading}
+              asChild
+            >
+              <Link href={PATHS.FORGOT_PASSWORD}>Forgot Password?</Link>
+            </Button>
+          </div>
+
           {/* Submit Button */}
           <Button type="submit" className="w-full" disabled={isLoginLoading}>
             {isLoginLoading ? (
@@ -107,7 +119,7 @@ export const LoginForm = () => {
       </Form>
 
       {/* Footer */}
-      <div className="text-center space-y-4">
+      {/* <div className="text-center space-y-4">
         <div className="text-sm text-muted-foreground">
           Don&apos;t have an account?{" "}
           <Button
@@ -119,7 +131,7 @@ export const LoginForm = () => {
             <Link href={PATHS.REGISTER}>Sign Up</Link>
           </Button>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
