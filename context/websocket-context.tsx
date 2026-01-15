@@ -35,7 +35,7 @@ export enum BillSocketEvent {
 
 interface WebSocketContextType {
   isConnected: boolean;
-  joinRestaurant: (restaurantId: string, role: string) => void;
+  joinRestaurant: (restaurantId: string | undefined, role: string) => void;
   leaveRestaurant: (restaurantId: string) => void;
   subscribe: (event: string, callback: (data: unknown) => void) => () => void;
 }
@@ -70,20 +70,20 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     const socket = io(`${url}/orders`, {
       transports: ["websocket", "polling"],
       reconnection: true,
-      reconnectionDelay: 3000,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
       reconnectionAttempts: 5,
+      timeout: 20000,
     });
 
     socket.on("connect", () => {
       console.log("Socket.IO connected:", socket.id);
       setIsConnected(true);
-      toast.success("Connected to server");
     });
 
     socket.on("disconnect", (reason) => {
       console.log("Socket.IO disconnected:", reason);
       setIsConnected(false);
-      toast.warning("Disconnected from server");
     });
 
     socket.on("connect_error", (error) => {
@@ -98,12 +98,20 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     };
   }, [url]);
 
-  const joinRestaurant = useCallback((restaurantId: string, role: string) => {
-    if (socketRef.current?.connected) {
-      socketRef.current.emit("join-restaurant", { restaurantId, role });
-      console.log(`Joined restaurant: ${restaurantId} as ${role}`);
-    }
-  }, []);
+  const joinRestaurant = useCallback(
+    (restaurantId: string | undefined, role: string) => {
+      if (socketRef.current?.connected) {
+        // TODO: Pass restaurantId when available, for now will use default room in backend
+        socketRef.current.emit("join-restaurant", { restaurantId, role });
+        console.log(
+          `Joined restaurant: ${restaurantId || "default"} as ${role}`,
+        );
+      } else {
+        console.warn("Cannot join restaurant: Socket not connected");
+      }
+    },
+    [],
+  );
 
   const leaveRestaurant = useCallback((restaurantId: string) => {
     if (socketRef.current?.connected) {

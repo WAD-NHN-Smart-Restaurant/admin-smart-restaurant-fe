@@ -14,14 +14,6 @@ import {
   PaginationItems,
 } from "@/types/api-type";
 
-// Get pending orders (waiting for waiter acceptance)
-export const getPendingOrders = async (): Promise<Order[]> => {
-  const response = await api.get<ApiResponse<Order[]>>(
-    `/api/waiter/orders/pending`,
-  );
-  return response.data.data;
-};
-
 // Get all orders for waiter
 export const getWaiterOrders = async (
   filters?: OrderFilter,

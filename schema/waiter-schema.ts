@@ -2,7 +2,12 @@ import { z } from "zod";
 
 // Enums based on database types
 export enum OrderStatus {
-  ACTIVE = "active",
+  PENDING = "pending",
+  ACCEPTED = "accepted",
+  REJECTED = "rejected",
+  PREPARING = "preparing",
+  READY = "ready",
+  SERVED = "served",
   PAYMENT_PENDING = "payment_pending",
   COMPLETED = "completed",
   CANCELLED = "cancelled",
@@ -45,6 +50,7 @@ export const markAsServedSchema = z.object({
 export const orderFilterSchema = z.object({
   search: z.string().optional(),
   status: z.nativeEnum(OrderStatus).optional(),
+  itemStatus: z.nativeEnum(OrderItemStatus).optional(),
   tableId: z.string().optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
@@ -53,13 +59,6 @@ export const orderFilterSchema = z.object({
 });
 
 // Status options for dropdowns
-export const ORDER_STATUS_OPTIONS = [
-  { value: OrderStatus.ACTIVE, label: "Active" },
-  { value: OrderStatus.PAYMENT_PENDING, label: "Payment Pending" },
-  { value: OrderStatus.COMPLETED, label: "Completed" },
-  { value: OrderStatus.CANCELLED, label: "Cancelled" },
-] as const;
-
 export const ORDER_ITEM_STATUS_OPTIONS = [
   { value: OrderItemStatus.PENDING, label: "Pending" },
   { value: OrderItemStatus.ACCEPTED, label: "Accepted" },

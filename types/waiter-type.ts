@@ -56,6 +56,7 @@ export interface OrderItem {
 // Order interface
 export interface Order {
   id: string;
+  orderNumber?: string;
   tableId: string;
   customerId?: string;
   status: OrderStatus;

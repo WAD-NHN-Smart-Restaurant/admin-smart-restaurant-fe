@@ -9,18 +9,18 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 
-export function useSafeMutation<TData, TVariables = void>(
+export function useSafeMutation<TData, TVariables = void, TContext = unknown>(
   mutationFn: (variables: TVariables) => Promise<TData>,
   options?: Omit<
-    UseMutationOptions<TData, unknown, TVariables>,
+    UseMutationOptions<TData, unknown, TVariables, TContext>,
     "mutationFn"
   > & {
     hideErrorSnackbar?: boolean;
     errorMessage?: string;
     successMessage?: string;
   },
-): UseMutationResult<TData, unknown, TVariables> {
-  return useMutation<TData, unknown, TVariables>({
+): UseMutationResult<TData, unknown, TVariables, TContext> {
+  return useMutation<TData, unknown, TVariables, TContext>({
     mutationFn,
     ...options,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

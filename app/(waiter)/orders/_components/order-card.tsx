@@ -3,204 +3,246 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { Order, OrderItemStatus } from "@/types/waiter-type";
-import { Clock, MapPin, Check, X, Send, CheckCircle2 } from "lucide-react";
-import { useMemo, useCallback } from "react";
-import { format } from "date-fns";
+import { useMemo } from "react";
+import { formatDistanceToNow } from "date-fns";
+import { X, StickyNote } from "lucide-react";
 
 interface OrderCardProps {
   order: Order;
-  onAcceptItem: (orderItemId: string) => void;
-  onRejectItem: (orderItemId: string) => void;
-  onSendToKitchen: (orderItemIds: string[]) => void;
-  onMarkServed: (orderItemIds: string[]) => void;
+  onAcceptItem: (itemId: string) => void;
+  onRejectItem: (itemId: string, itemName: string) => void;
+  onAcceptAllItems: (order: Order) => void;
+  onRejectAllItems: (order: Order) => void;
+  onMarkServed: (order: Order) => void;
   isProcessing?: boolean;
+  selectedTab?: string;
 }
 
 export function OrderCard({
   order,
-  onAcceptItem,
   onRejectItem,
-  onSendToKitchen,
+  onAcceptAllItems,
+  onRejectAllItems,
   onMarkServed,
   isProcessing = false,
+  selectedTab = "pending",
 }: OrderCardProps) {
-  // Calculate order stats
-  const orderStats = useMemo(() => {
-    const items = order.orderItems;
+  // Determine order status and styling
+  const orderStatus = useMemo(() => {
+    const hasPending = order.orderItems.some(
+      (i) => i.status === OrderItemStatus.PENDING,
+    );
+    const hasPreparing = order.orderItems.some(
+      (i) => i.status === OrderItemStatus.PREPARING,
+    );
+    const hasReady = order.orderItems.some(
+      (i) => i.status === OrderItemStatus.READY,
+    );
+
+    const isNew =
+      hasPending &&
+      new Date().getTime() - new Date(order.createdAt).getTime() < 60000;
+
+    if (hasReady) {
+      return {
+        label: "Ready to Serve",
+        className: "bg-green-100 text-green-700",
+        borderColor: "border-l-green-500",
+        animate: false,
+      };
+    }
+    if (hasPreparing) {
+      return {
+        label: "In Kitchen",
+        className: "bg-blue-100 text-blue-700",
+        borderColor: "",
+        animate: false,
+      };
+    }
+    if (hasPending) {
+      return {
+        label: "Pending",
+        className: "bg-amber-100 text-amber-700",
+        borderColor: isNew ? "border-l-red-500" : "",
+        animate: isNew,
+      };
+    }
     return {
-      pendingItems: items.filter((i) => i.status === OrderItemStatus.PENDING),
-      acceptedItems: items.filter((i) => i.status === OrderItemStatus.ACCEPTED),
-      preparingItems: items.filter(
-        (i) => i.status === OrderItemStatus.PREPARING,
-      ),
-      readyItems: items.filter((i) => i.status === OrderItemStatus.READY),
+      label: "Unknown",
+      className: "bg-slate-50 text-slate-800",
+      borderColor: "",
+      animate: false,
     };
-  }, [order.orderItems]);
+  }, [order]);
 
-  // Status badge color
-  const getStatusColor = useCallback((status: OrderItemStatus) => {
-    switch (status) {
-      case OrderItemStatus.PENDING:
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case OrderItemStatus.ACCEPTED:
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case OrderItemStatus.REJECTED:
-        return "bg-red-100 text-red-800 border-red-200";
-      case OrderItemStatus.PREPARING:
-        return "bg-orange-100 text-orange-800 border-orange-200";
-      case OrderItemStatus.READY:
-        return "bg-green-100 text-green-800 border-green-200";
-      case OrderItemStatus.SERVED:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  }, []);
+  const timeAgo = useMemo(() => {
+    const time = formatDistanceToNow(new Date(order.createdAt), {
+      addSuffix: true,
+    });
+    const minutes = Math.floor(
+      (new Date().getTime() - new Date(order.createdAt).getTime()) / 60000,
+    );
+    return { text: time, isUrgent: minutes < 1 };
+  }, [order.createdAt]);
 
-  // Handle send accepted items to kitchen
-  const handleSendToKitchen = useCallback(() => {
-    const acceptedItemIds = orderStats.acceptedItems.map((item) => item.id);
-    if (acceptedItemIds.length > 0) {
-      onSendToKitchen(acceptedItemIds);
-    }
-  }, [orderStats.acceptedItems, onSendToKitchen]);
-
-  // Handle mark ready items as served
-  const handleMarkServed = useCallback(() => {
-    const readyItemIds = orderStats.readyItems.map((item) => item.id);
-    if (readyItemIds.length > 0) {
-      onMarkServed(readyItemIds);
-    }
-  }, [orderStats.readyItems, onMarkServed]);
+  const hasReady = order.orderItems.some(
+    (i) => i.status === OrderItemStatus.READY,
+  );
 
   return (
-    <Card className="p-4 hover:shadow-md transition-shadow">
+    <Card
+      className={`overflow-hidden border-l-4 py-0 ${orderStatus.borderColor} ${
+        orderStatus.animate ? "animate-pulse-slow shadow-lg" : "shadow-md"
+      }`}
+    >
       {/* Order Header */}
-      <div className="flex items-start justify-between mb-4 pb-3 border-b">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Table {order.table.tableNumber}
-            </h3>
-            <Badge variant="outline" className="text-xs">
-              {order.status}
-            </Badge>
+      <div className="p-4 flex justify-between items-center border-b border-slate-100">
+        <div className="flex items-center gap-3">
+          <div className="bg-orange-500 text-white px-3 py-2 rounded-lg font-bold">
+            T{order.table?.tableNumber || "?"}
           </div>
-          <div className="flex items-center gap-4 text-sm text-gray-600">
-            <div className="flex items-center gap-1">
-              <MapPin className="h-3 w-3" />
-              <span>{order.table.location || "No location"}</span>
+          <div>
+            <div className="font-bold text-slate-900">
+              #{order.orderNumber || order.id.slice(0, 8)}
             </div>
-            <div className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              <span>{format(new Date(order.createdAt), "HH:mm")}</span>
+            <div className="text-sm text-slate-500">
+              {order.orderItems.length} items
             </div>
           </div>
         </div>
         <div className="text-right">
-          <p className="text-sm text-gray-600">Total</p>
-          <p className="text-lg font-bold text-gray-900">
-            ${order.totalAmount.toFixed(2)}
-          </p>
+          <Badge className={orderStatus.className}>{orderStatus.label}</Badge>
+          <div
+            className={`text-xs mt-1 ${
+              timeAgo.isUrgent ? "text-red-600 font-semibold" : "text-slate-500"
+            }`}
+          >
+            {timeAgo.text}
+          </div>
         </div>
       </div>
 
       {/* Order Items */}
-      <div className="space-y-3 mb-4">
-        {order.orderItems.map((item) => (
-          <div
-            key={item.id}
-            className="flex items-start justify-between p-3 bg-gray-50 rounded-lg"
-          >
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <p className="font-medium text-gray-900">
-                  {item.quantity}x {item.menuItem.name}
-                </p>
-                <Badge
-                  variant="outline"
-                  className={`text-xs ${getStatusColor(item.status)}`}
-                >
-                  {item.status}
-                </Badge>
-              </div>
-              {item.menuItem.categoryName && (
-                <p className="text-xs text-gray-500 mb-1">
-                  {item.menuItem.categoryName}
-                </p>
-              )}
-              {item.orderItemOptions.length > 0 && (
-                <div className="text-xs text-gray-600 mb-1">
-                  Options:{" "}
-                  {item.orderItemOptions
-                    .map((opt) => opt.modifierOption?.name)
-                    .filter(Boolean)
-                    .join(", ")}
+      <div className="p-4 space-y-3">
+        {order.orderItems.map((item, index) => (
+          <div key={item.id}>
+            <div className="flex justify-between items-start gap-3">
+              <div className="flex gap-2 flex-1">
+                <div className="bg-slate-100 px-2.5 py-1 rounded font-bold text-sm h-fit">
+                  {item.quantity}x
                 </div>
-              )}
-              {item.notes && (
-                <p className="text-xs text-gray-600 italic">
-                  Note: {item.notes}
-                </p>
-              )}
-              <p className="text-sm font-medium text-gray-700 mt-1">
-                ${item.totalPrice.toFixed(2)}
-              </p>
-            </div>
-            {item.status === OrderItemStatus.PENDING && (
-              <div className="flex gap-2 ml-3">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                  onClick={() => onAcceptItem(item.id)}
-                  disabled={isProcessing}
-                >
-                  <Check className="h-3 w-3" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  onClick={() => onRejectItem(item.id)}
-                  disabled={isProcessing}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <div className="font-medium text-slate-900">
+                      {item.menuItem?.name}
+                    </div>
+                    {/* Status Badge */}
+                    {item.status === OrderItemStatus.ACCEPTED && (
+                      <Badge className="bg-blue-100 text-blue-700 text-xs">
+                        Accepted
+                      </Badge>
+                    )}
+                    {item.status === OrderItemStatus.PREPARING && (
+                      <Badge className="bg-blue-100 text-blue-700 text-xs">
+                        Preparing
+                      </Badge>
+                    )}
+                    {item.status === OrderItemStatus.REJECTED && (
+                      <Badge className="bg-red-100 text-red-700 text-xs">
+                        Rejected
+                      </Badge>
+                    )}
+                    {item.status === OrderItemStatus.READY && (
+                      <Badge className="bg-green-100 text-green-700 text-xs">
+                        Ready
+                      </Badge>
+                    )}
+                  </div>
+                  {item.orderItemOptions &&
+                    item.orderItemOptions.length > 0 && (
+                      <div className="text-xs text-slate-500 mt-1">
+                        +{" "}
+                        {item.orderItemOptions
+                          .map((opt) => opt.modifierOption?.name)
+                          .filter(Boolean)
+                          .join(", ")}
+                      </div>
+                    )}
+                  {item.notes && (
+                    <div className="flex items-start gap-1 text-xs text-orange-600 mt-1 bg-orange-50 p-2 rounded border border-orange-200">
+                      <StickyNote className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                      <span>{item.notes}</span>
+                    </div>
+                  )}
+                </div>
               </div>
+              <div className="flex items-center gap-2">
+                <div className="font-semibold text-slate-900 text-right">
+                  ${(item.quantity * item.unitPrice).toFixed(2)}
+                </div>
+                {/* Per-item actions for pending items */}
+                {item.status === OrderItemStatus.PENDING &&
+                  selectedTab === "pending" && (
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() =>
+                          onRejectItem(item.id, item.menuItem?.name || "Item")
+                        }
+                        disabled={isProcessing}
+                        title="Reject item"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+              </div>
+            </div>
+            {index < order.orderItems.length - 1 && (
+              <Separator className="mt-3" />
             )}
           </div>
         ))}
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex gap-2 pt-3 border-t">
-        {orderStats.acceptedItems.length > 0 && (
+      {/* Actions */}
+      {hasReady && selectedTab === "ready" && (
+        <div className="bg-slate-50 p-4 flex gap-3">
           <Button
-            size="sm"
-            variant="default"
-            className="flex-1"
-            onClick={handleSendToKitchen}
-            disabled={isProcessing}
-          >
-            <Send className="h-3 w-3 mr-2" />
-            Send to Kitchen ({orderStats.acceptedItems.length})
-          </Button>
-        )}
-        {orderStats.readyItems.length > 0 && (
-          <Button
-            size="sm"
-            variant="default"
             className="flex-1 bg-green-600 hover:bg-green-700"
-            onClick={handleMarkServed}
+            onClick={() => onMarkServed(order)}
             disabled={isProcessing}
           >
-            <CheckCircle2 className="h-3 w-3 mr-2" />
-            Mark Served ({orderStats.readyItems.length})
+            Mark as Served
           </Button>
+        </div>
+      )}
+
+      {/* Accept/Reject All Actions for Pending Tab */}
+      {order.orderItems.some((i) => i.status === OrderItemStatus.PENDING) &&
+        selectedTab === "pending" && (
+          <div className="bg-slate-50 p-4 flex gap-3">
+            <Button
+              variant="outline"
+              className="flex-1 border-2 border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600"
+              onClick={() => onRejectAllItems(order)}
+              disabled={isProcessing}
+            >
+              Reject All
+            </Button>
+            <Button
+              className="flex-[2] bg-green-600 hover:bg-green-700"
+              onClick={() => onAcceptAllItems(order)}
+              disabled={isProcessing}
+            >
+              Accept & Send to Kitchen
+            </Button>
+          </div>
         )}
-      </div>
     </Card>
   );
 }

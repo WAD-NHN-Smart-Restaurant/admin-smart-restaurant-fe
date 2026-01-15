@@ -2,9 +2,9 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { useSafeQuery } from "./use-safe-query";
+import { useSafeInfiniteQuery } from "./use-safe-infinite-query";
 import { useSafeMutation } from "./use-safe-mutation";
 import {
-  getPendingOrders,
   getWaiterOrders,
   getOrderById,
   acceptOrderItem,
@@ -37,18 +37,6 @@ export const waiterQueryKeys = {
     [...waiterQueryKeys.all, "table-orders", tableId] as const,
 };
 
-// Hook to get pending orders
-export const useGetPendingOrders = () => {
-  return useSafeQuery(
-    waiterQueryKeys.pendingOrders(),
-    () => getPendingOrders(),
-    {
-      errorMessage: "Failed to fetch pending orders",
-      staleTime: 30000, // 30 seconds
-    },
-  );
-};
-
 // Hook to get waiter orders
 export const useGetWaiterOrders = (filters?: OrderFilter) => {
   const queryKey = useMemo(
@@ -60,6 +48,26 @@ export const useGetWaiterOrders = (filters?: OrderFilter) => {
     errorMessage: "Failed to fetch orders",
     staleTime: 30000,
   });
+};
+
+// Hook to get waiter orders with infinite scroll
+export const useGetWaiterOrdersInfinite = (filters?: OrderFilter) => {
+  return useSafeInfiniteQuery(
+    [...waiterQueryKeys.orders(), "infinite", filters],
+    ({ pageParam = 1 }) =>
+      getWaiterOrders({ ...filters, page: pageParam as number }),
+    {
+      getNextPageParam: (lastPage, _) => {
+        if (!lastPage.items || lastPage.items.length === 0) return undefined;
+        const hasMore =
+          lastPage.pagination.page < lastPage.pagination.totalPages;
+        return hasMore ? lastPage.pagination.page + 1 : undefined;
+      },
+      initialPageParam: 1,
+      errorMessage: "Failed to fetch orders",
+      staleTime: 30000,
+    },
+  );
 };
 
 // Hook to get single order
@@ -166,19 +174,34 @@ export const useMarkAsServed = () => {
 };
 
 // Hook to listen for real-time order updates
-export const useWaiterSocketListeners = () => {
+export const useWaiterSocketListeners = (
+  onUnseenUpdate?: (tabs: string[]) => void,
+) => {
   const queryClient = useQueryClient();
-  const { subscribe } = useWebSocket();
+  const { subscribe, joinRestaurant, leaveRestaurant, isConnected } =
+    useWebSocket();
 
   useEffect(() => {
+    if (!isConnected) return;
+
+    // Join waiter room with a small delay to ensure connection is stable
+    const joinTimer = setTimeout(() => {
+      const restaurantId = undefined; // TODO: Get from user context when available
+      joinRestaurant(restaurantId, "waiter");
+      console.log("Joined waiter room");
+    }, 100);
+
     // Listen for new orders
     const unsubscribeNewOrder = subscribe(
       WaiterSocketEvent.NEW_ORDER,
       (data: unknown) => {
         console.log("New order received:", data);
-        queryClient.invalidateQueries({
-          queryKey: waiterQueryKeys.pendingOrders(),
+        // Refetch immediately for real-time update
+        queryClient.refetchQueries({
+          queryKey: waiterQueryKeys.orders(),
         });
+        // Notify parent about unseen updates in pending tab
+        onUnseenUpdate?.(["pending"]);
       },
     );
 
@@ -187,16 +210,24 @@ export const useWaiterSocketListeners = () => {
       WaiterSocketEvent.ORDER_READY,
       (data: unknown) => {
         console.log("Order ready:", data);
-        queryClient.invalidateQueries({
-          queryKey: waiterQueryKeys.orders(),
+        // Refetch infinite queries for ready and accepted tabs
+        queryClient.refetchQueries({
+          queryKey: [...waiterQueryKeys.orders(), "infinite"],
         });
+        // Notify parent about unseen updates in ready tab
+        onUnseenUpdate?.(["ready"]);
       },
     );
 
     return () => {
+      clearTimeout(joinTimer);
       unsubscribeNewOrder();
       unsubscribeOrderReady();
+      const restaurantId = undefined; // TODO: Get from user context when available
+      if (restaurantId) {
+        leaveRestaurant(restaurantId);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subscribe]);
+  }, [isConnected, subscribe, joinRestaurant, leaveRestaurant, onUnseenUpdate]);
 };

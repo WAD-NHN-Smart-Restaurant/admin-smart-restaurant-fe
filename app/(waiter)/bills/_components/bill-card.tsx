@@ -89,7 +89,7 @@ export function BillCard({
 
       {/* Bill Items Summary */}
       <div className="space-y-2 mb-4">
-        {bill.order.orderItems.slice(0, 3).map((item) => (
+        {bill.order.orderItems?.slice(0, 3).map((item) => (
           <div
             key={item.id}
             className="flex items-center justify-between text-sm"
@@ -102,7 +102,7 @@ export function BillCard({
             </span>
           </div>
         ))}
-        {bill.order.orderItems.length > 3 && (
+        {bill.order.orderItems?.length > 3 && (
           <p className="text-xs text-gray-500">
             +{bill.order.orderItems.length - 3} more items...
           </p>

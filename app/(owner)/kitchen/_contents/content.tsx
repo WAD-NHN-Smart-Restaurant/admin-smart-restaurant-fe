@@ -30,6 +30,7 @@ import { DraggableOrderCard } from "../_components/draggable-order-card";
 import {
   useGetKitchenOrders,
   useBulkUpdateOrderItems,
+  useRejectOrderItem,
   useIsItemOverdue,
   useElapsedTime,
   useKitchenSocketListeners,
@@ -65,6 +66,7 @@ function LiveClock() {
 export function KitchenContent() {
   // State
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const soundRef = useRef<HTMLAudioElement | null>(null);
   const previousOrderCountRef = useRef(0);
@@ -77,6 +79,7 @@ export function KitchenContent() {
   const { data: readyOrders = [], isLoading: isLoadingReady } =
     useGetKitchenOrders({ status: "ready" });
   const bulkUpdateMutation = useBulkUpdateOrderItems();
+  const rejectMutation = useRejectOrderItem();
 
   const isLoading = isLoadingReceived || isLoadingPreparing || isLoadingReady;
   const orders = useMemo(() => {
@@ -175,6 +178,17 @@ export function KitchenContent() {
     [bulkUpdateMutation],
   );
 
+  // Handle reject order item
+  const handleReject = useCallback(
+    (orderItemId: string, reason: string) => {
+      rejectMutation.mutate({
+        orderItemId,
+        reason,
+      });
+    },
+    [rejectMutation],
+  );
+
   // Drag and drop sensors
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -188,34 +202,57 @@ export function KitchenContent() {
     setActiveId(event.active.id as string);
   }, []);
 
+  const handleDragOver = useCallback((event: any) => {
+    setOverId(event.over?.id || null);
+  }, []);
+
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
 
       if (over && active.id !== over.id) {
-        // Handle status change via drag and drop
         const orderId = active.id as string;
-        const newStatus = over.id as "accepted" | "preparing" | "ready";
+        let newStatus: "accepted" | "preparing" | "ready" | null = null;
 
-        const order = orders.find((o) => o.id === orderId);
-        if (order) {
-          const itemIds = order.orderItems.map((item) => item.id);
+        // Check if over.id is a status string or an order UUID
+        const validStatuses = ["accepted", "preparing", "ready"];
+        if (validStatuses.includes(over.id as string)) {
+          // Dropped on column
+          newStatus = over.id as "accepted" | "preparing" | "ready";
+        } else {
+          // Dropped on an order card - find which column it belongs to
+          const targetOrder = orders.find((o) => o.id === over.id);
+          if (targetOrder && targetOrder.orderItems.length > 0) {
+            newStatus = targetOrder.orderItems[0].status as
+              | "accepted"
+              | "preparing"
+              | "ready";
+          }
+        }
 
-          // Allow moving to any status
-          bulkUpdateMutation.mutate({
-            orderItemIds: itemIds,
-            status: newStatus,
-          });
+        if (newStatus) {
+          const order = orders.find((o) => o.id === orderId);
+          if (order) {
+            const itemIds = order.orderItems.map((item) => item.id);
+
+            // Allow moving to any status
+            bulkUpdateMutation.mutate({
+              orderItemIds: itemIds,
+              status: newStatus,
+            });
+          }
         }
       }
 
       setActiveId(null);
+      setOverId(null);
     },
     [orders, bulkUpdateMutation],
   );
 
   const handleDragCancel = useCallback(() => {
     setActiveId(null);
+    setOverId(null);
   }, []);
 
   // Get active order for drag overlay
@@ -240,6 +277,10 @@ export function KitchenContent() {
     orders: KitchenOrder[];
   }) => {
     const { setNodeRef, isOver } = useDroppable({ id });
+
+    // Check if hovering over this column or over an order in this column
+    const isOverColumn =
+      isOver || (overId && columnOrders.some((order) => order.id === overId));
 
     return (
       <div className="flex flex-col h-full">
@@ -266,7 +307,7 @@ export function KitchenContent() {
           className="flex-1 rounded-t-none shadow-sm py-2 relative"
         >
           {/* Drop indicator - visible when dragging over */}
-          {isOver && (
+          {isOverColumn && (
             <div className="absolute inset-0 bg-blue-50/80 ring-2 ring-blue-300 ring-inset rounded pointer-events-none transition-opacity z-50" />
           )}
 
@@ -280,6 +321,7 @@ export function KitchenContent() {
                   order={order}
                   onStartPreparing={handleStartPreparing}
                   onMarkReady={handleMarkReady}
+                  onReject={handleReject}
                   isOverdue={isItemOverdue}
                   getElapsedTime={getElapsedTime}
                 />
@@ -413,6 +455,7 @@ export function KitchenContent() {
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
           onDragCancel={handleDragCancel}
         >
@@ -456,6 +499,7 @@ export function KitchenContent() {
                   order={activeOrder}
                   onStartPreparing={handleStartPreparing}
                   onMarkReady={handleMarkReady}
+                  onReject={handleReject}
                   isOverdue={isItemOverdue}
                   getElapsedTime={getElapsedTime}
                 />

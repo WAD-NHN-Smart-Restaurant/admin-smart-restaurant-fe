@@ -72,9 +72,11 @@ export function BillsContent() {
   }, []);
 
   const handleCreateConfirm = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     (orderId: string, tableId: string) => {
       // Backend will calculate subtotal, tax, and total
       // We only need to send the orderId
+      // tableId is passed from dialog but not used in API call
       createMutation.mutate(
         {
           orderId,
@@ -108,12 +110,14 @@ export function BillsContent() {
 
   const handleDiscountConfirm = useCallback(
     (discountType: "percentage" | "fixed", discountValue: number) => {
-      if (selectedBill) {
+      if (selectedBill && selectedBill.orderId) {
         discountMutation.mutate(
           {
-            billId: selectedBill.id,
-            discountType,
-            discountValue,
+            orderId: selectedBill.orderId,
+            data: {
+              discountType,
+              discountValue,
+            },
           },
           {
             onSuccess: () => {
@@ -134,12 +138,13 @@ export function BillsContent() {
 
   const handlePaymentConfirm = useCallback(
     (paymentMethod: PaymentMethod) => {
-      if (selectedBill) {
+      if (selectedBill && selectedBill.orderId) {
         paymentMutation.mutate(
           {
-            billId: selectedBill.id,
-            paymentMethod,
-            amount: selectedBill.total,
+            orderId: selectedBill.orderId,
+            data: {
+              paymentMethod,
+            },
           },
           {
             onSuccess: () => {
