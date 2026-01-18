@@ -17,6 +17,7 @@ import {
   BulkUpdateOrderItemsRequest,
 } from "@/types/kitchen-type";
 import { useWebSocket, KitchenSocketEvent } from "@/context/websocket-context";
+import { useAuth } from "@/context/auth-context";
 
 // Query keys
 export const kitchenQueryKeys = {
@@ -29,7 +30,12 @@ export const kitchenQueryKeys = {
 };
 
 // Hook to get kitchen orders with filters
-export const useGetKitchenOrders = (filters?: KitchenOrderFilter) => {
+export const useGetKitchenOrders = (
+  filters?: KitchenOrderFilter,
+  options?: {
+    refetchInterval: number;
+  },
+) => {
   // Use ordersByStatus key when filtering by status for consistency with mutations
   const queryKey = filters?.status
     ? kitchenQueryKeys.ordersByStatus(filters.status)
@@ -39,7 +45,7 @@ export const useGetKitchenOrders = (filters?: KitchenOrderFilter) => {
     queryKey,
     () => getKitchenOrders(filters),
     {
-      refetchInterval: false, // Disable polling, rely on WebSocket updates
+      refetchInterval: options?.refetchInterval ?? false, // Disable polling, rely on WebSocket updates
       staleTime: 0, // Consider data immediately stale for instant refetch
       refetchOnWindowFocus: false,
     },
@@ -223,15 +229,16 @@ export const useKitchenSocketListeners = () => {
   const queryClient = useQueryClient();
   const { subscribe, joinRestaurant, leaveRestaurant, isConnected } =
     useWebSocket();
+  const { profile } = useAuth();
 
   useEffect(() => {
     if (!isConnected) return;
 
     // Join kitchen room with a small delay to ensure connection is stable
     const joinTimer = setTimeout(() => {
-      const restaurantId = undefined; // TODO: Get from user context when available
+      // Get restaurant_id from user profile
+      const restaurantId = profile?.restaurantId;
       joinRestaurant(restaurantId, "kitchen");
-      console.log("Joined kitchen room");
     }, 100);
 
     // Listen for new orders sent to kitchen
@@ -266,12 +273,19 @@ export const useKitchenSocketListeners = () => {
       clearTimeout(joinTimer);
       unsubscribeNewOrder();
       unsubscribeOrderAccepted();
-      const restaurantId = undefined; // TODO: Get from user context when available
+      const restaurantId = profile?.restaurantId;
       if (restaurantId) {
         leaveRestaurant(restaurantId);
       }
     };
-  }, [isConnected, subscribe, joinRestaurant, leaveRestaurant, queryClient]);
+  }, [
+    isConnected,
+    subscribe,
+    joinRestaurant,
+    leaveRestaurant,
+    queryClient,
+    profile?.restaurantId,
+  ]);
 };
 
 // Helper hook to compute kitchen stats

@@ -23,6 +23,7 @@ import {
 } from "@/types/waiter-type";
 import { useEffect, useMemo } from "react";
 import { useWebSocket, WaiterSocketEvent } from "@/context/websocket-context";
+import { useAuth } from "@/context/auth-context";
 
 // Query keys
 export const waiterQueryKeys = {
@@ -176,19 +177,31 @@ export const useMarkAsServed = () => {
 // Hook to listen for real-time order updates
 export const useWaiterSocketListeners = (
   onUnseenUpdate?: (tabs: string[]) => void,
+  onCallWaiter?: (data: { table_id: string; timestamp: string }) => void,
 ) => {
   const queryClient = useQueryClient();
   const { subscribe, joinRestaurant, leaveRestaurant, isConnected } =
     useWebSocket();
+  const { user, profile } = useAuth();
+
+  // Fetch assigned tables first
+  const { data: tablesData } = useGetAssignedTables();
+  const assignedTableIds = useMemo(
+    () => (tablesData || []).map((t) => t.id),
+    [tablesData],
+  );
 
   useEffect(() => {
     if (!isConnected) return;
 
     // Join waiter room with a small delay to ensure connection is stable
     const joinTimer = setTimeout(() => {
-      const restaurantId = undefined; // TODO: Get from user context when available
-      joinRestaurant(restaurantId, "waiter");
-      console.log("Joined waiter room");
+      // Get restaurant_id from user profile
+      const restaurantId = profile?.restaurantId;
+      const waiterId = user?.id;
+
+      // Join with assigned table IDs for targeted notifications
+      joinRestaurant(restaurantId, "waiter", waiterId, assignedTableIds);
     }, 100);
 
     // Listen for new orders
@@ -219,15 +232,39 @@ export const useWaiterSocketListeners = (
       },
     );
 
+    // Listen for call-waiter events
+    const unsubscribeCallWaiter = subscribe(
+      WaiterSocketEvent.CALL_WAITER,
+      (data: unknown) => {
+        console.log("Call waiter event received:", data);
+        onCallWaiter?.(data as { table_id: string; timestamp: string });
+
+        // Play sound notification
+        const audio = new Audio("/sounds/noti.wav");
+        audio.play().catch((err) => console.error("Error playing sound:", err));
+      },
+    );
+
     return () => {
       clearTimeout(joinTimer);
       unsubscribeNewOrder();
       unsubscribeOrderReady();
-      const restaurantId = undefined; // TODO: Get from user context when available
+      unsubscribeCallWaiter();
+      const restaurantId = profile?.restaurantId;
       if (restaurantId) {
         leaveRestaurant(restaurantId);
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isConnected, subscribe, joinRestaurant, leaveRestaurant, onUnseenUpdate]);
+  }, [
+    isConnected,
+    subscribe,
+    joinRestaurant,
+    leaveRestaurant,
+    onUnseenUpdate,
+    onCallWaiter,
+    profile?.restaurantId,
+    user?.id,
+    assignedTableIds,
+  ]);
 };

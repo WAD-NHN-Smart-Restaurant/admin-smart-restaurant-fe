@@ -52,6 +52,7 @@ export const orderFilterSchema = z.object({
   status: z.nativeEnum(OrderStatus).optional(),
   itemStatus: z.nativeEnum(OrderItemStatus).optional(),
   tableId: z.string().optional(),
+  waiterId: z.string().optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   page: z.number().min(1).optional(),

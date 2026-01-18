@@ -24,6 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { useBulkUpdateOrderItems } from "@/hooks/use-kitchen-query";
 
 interface KitchenOrderCardProps {
   order: KitchenOrder;
@@ -36,7 +37,6 @@ interface KitchenOrderCardProps {
 
 export const KitchenOrderCard = memo(function KitchenOrderCard({
   order,
-  onMarkReady,
   onReject,
   isOverdue,
   getElapsedTime,
@@ -56,7 +56,7 @@ export const KitchenOrderCard = memo(function KitchenOrderCard({
 
     return { preparing, ready };
   }, [order.orderItems]);
-
+  const bulkUpdateMutation = useBulkUpdateOrderItems();
   // Check if any item is overdue
   const hasOverdueItems = useMemo(() => {
     return order.orderItems.some(
@@ -98,9 +98,12 @@ export const KitchenOrderCard = memo(function KitchenOrderCard({
   const handleMarkAllReady = useCallback(() => {
     const preparingItemIds = itemsByStatus.preparing.map((item) => item.id);
     if (preparingItemIds.length > 0) {
-      onMarkReady(preparingItemIds);
+      bulkUpdateMutation.mutate({
+        orderItemIds: preparingItemIds,
+        status: OrderItemStatus.READY,
+      });
     }
-  }, [itemsByStatus.preparing, onMarkReady]);
+  }, [bulkUpdateMutation, itemsByStatus.preparing]);
 
   // Handle reject dialog open
   const handleOpenRejectDialog = useCallback((itemId: string) => {
@@ -269,14 +272,13 @@ export const KitchenOrderCard = memo(function KitchenOrderCard({
           )}
 
         {itemsByStatus.ready.length > 0 && (
-          <Button
-            onClick={handleMarkAllReady}
-            className="flex-1 bg-green-600 hover:bg-green-700"
-            size="sm"
+          <Badge
+            className="flex-1 border-green-300 text-green-400"
+            variant={"outline"}
           >
             <CheckCircle2 className="h-4 w-4 mr-2" />
-            Complete Order
-          </Button>
+            Wait for waiter to serve
+          </Badge>
         )}
       </CardContent>
 

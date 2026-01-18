@@ -13,6 +13,17 @@ import {
   UpdatePasswordResponse,
   CurrentUserResponse,
 } from "@/types/auth-type";
+
+export interface Profile {
+  id: string;
+  fullName: string | null;
+  phoneNumber: string | null;
+  avatarUrl: string | null;
+  role: string | null;
+  restaurantId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
 import {
   registerResponseSchema,
   confirmEmailResponseSchema,
@@ -28,6 +39,7 @@ const AUTH_API = {
   REFRESH_TOKEN: "/api/auth/refresh",
   EMAIL_CONFIRM: "/api/auth/confirm",
   ME: "/api/auth/me",
+  PROFILE: "/api/profiles",
   RESET_PASSWORD: "/api/auth/reset-password",
   UPDATE_PASSWORD: "/api/auth/update-password",
   RESEND_CONFIRMATION: "/api/auth/resend-confirmation",
@@ -94,6 +106,21 @@ export const getCurrentUser = async (): Promise<User> => {
     return response.data.data.data;
   } catch (error: unknown) {
     console.error("Get current user error:", error);
+    throw error;
+  }
+};
+
+/**
+ * Get user profile with restaurant information
+ */
+export const getProfile = async (userId: string): Promise<Profile> => {
+  try {
+    const response = await api.get<ApiResponse<Profile>>(
+      `${AUTH_API.PROFILE}/${userId}`,
+    );
+    return response.data.data;
+  } catch (error: unknown) {
+    console.error("Get profile error:", error);
     throw error;
   }
 };

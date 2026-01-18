@@ -4,8 +4,12 @@ import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { ProtectedRoute } from "@/components/auth-guard";
 import { OrderCard } from "../_components/order-card";
 import { RejectOrderDialog } from "../_components/reject-order-dialog";
+import { TablesTabContent } from "../_components/tables-tab-content";
 import { EmptyState } from "@/components/empty-state";
 import { PageLoadingSkeleton } from "@/components/page-loading-skeleton";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/context/auth-context";
 import {
   useGetWaiterOrdersInfinite,
   useAcceptOrderItem,
@@ -21,6 +25,7 @@ import { Button } from "@/components/ui/button";
 
 export function OrdersContent() {
   const router = useRouter();
+  const { user } = useAuth();
 
   // State
   const [selectedTab, setSelectedTab] = useState<string>("pending");
@@ -30,7 +35,11 @@ export function OrdersContent() {
   );
   const [selectedOrderItemName, setSelectedOrderItemName] =
     useState<string>("");
+  const [showAssignedOnly, setShowAssignedOnly] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // State for tables tab call-waiter tracking
+  const [calledTableIds, setCalledTableIds] = useState<Set<string>>(new Set());
 
   // Track which tabs have unseen updates
   const [hasUnseenUpdates, setHasUnseenUpdates] = useState<
@@ -51,8 +60,6 @@ export function OrdersContent() {
         return "accepted";
       case "ready":
         return "ready";
-      case "tables":
-        return "active"; // For tables view, show all active orders
       default:
         return "pending";
     }
@@ -67,6 +74,7 @@ export function OrdersContent() {
     isFetchingNextPage,
   } = useGetWaiterOrdersInfinite({
     status: orderStatusFilter as OrderStatus,
+    waiterId: showAssignedOnly ? user?.id : undefined,
     limit: 20,
   });
 
@@ -75,6 +83,21 @@ export function OrdersContent() {
   const rejectMutation = useRejectOrderItem();
   const sendToKitchenMutation = useSendToKitchen();
   const markServedMutation = useMarkAsServed();
+
+  // Handle call-waiter events
+  const handleCallWaiter = useCallback(
+    (data: { table_id: string; timestamp: string }) => {
+      // Add to called tables set
+      setCalledTableIds((prev) => new Set(prev).add(data.table_id));
+
+      // Mark tables tab as having unseen updates
+      setHasUnseenUpdates((prev) => ({
+        ...prev,
+        tables: true,
+      }));
+    },
+    [],
+  );
 
   // Listen for real-time updates (handles room joining internally)
   useWaiterSocketListeners((tabs) => {
@@ -85,7 +108,7 @@ export function OrdersContent() {
       });
       return updated;
     });
-  });
+  }, handleCallWaiter);
 
   // Extract orders from infinite query pages
   const orders = useMemo(() => {
@@ -244,12 +267,19 @@ export function OrdersContent() {
                 </p>
               </div>
               <div className="flex items-center gap-3 lg:gap-4">
-                <button
-                  onClick={handleOpenKDS}
-                  className="p-2 hover:bg-slate-100 rounded-lg transition text-slate-700"
-                >
-                  <Monitor className="h-6 w-6" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="assigned-only"
+                    checked={showAssignedOnly}
+                    onCheckedChange={setShowAssignedOnly}
+                  />
+                  <Label
+                    htmlFor="assigned-only"
+                    className="text-sm cursor-pointer"
+                  >
+                    My Tables Only
+                  </Label>
+                </div>
               </div>
             </div>
           </div>
@@ -315,7 +345,19 @@ export function OrdersContent() {
           </div>
 
           {/* Orders List */}
-          {ordersLoading ? (
+          {selectedTab === "tables" ? (
+            <TablesTabContent
+              onCallWaiter={handleCallWaiter}
+              calledTableIds={calledTableIds}
+              onClearTableCall={(tableId) => {
+                setCalledTableIds((prev) => {
+                  const newSet = new Set(prev);
+                  newSet.delete(tableId);
+                  return newSet;
+                });
+              }}
+            />
+          ) : ordersLoading ? (
             <PageLoadingSkeleton />
           ) : (
             <div

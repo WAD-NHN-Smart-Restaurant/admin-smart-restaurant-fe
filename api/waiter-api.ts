@@ -23,6 +23,7 @@ export const getWaiterOrders = async (
   if (filters?.search) params.append("search", filters.search);
   if (filters?.status) params.append("status", filters.status);
   if (filters?.tableId) params.append("tableId", filters.tableId);
+  if (filters?.waiterId) params.append("waiterId", filters.waiterId);
   if (filters?.startDate) params.append("startDate", filters.startDate);
   if (filters?.endDate) params.append("endDate", filters.endDate);
   if (filters?.page) params.append("page", filters.page.toString());

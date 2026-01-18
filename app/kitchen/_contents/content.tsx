@@ -11,6 +11,7 @@ import {
   useSensor,
   useSensors,
   useDroppable,
+  DragOverEvent,
 } from "@dnd-kit/core";
 import {
   Clock,
@@ -77,7 +78,10 @@ export function KitchenContent() {
   const { data: preparingOrders = [], isLoading: isLoadingPreparing } =
     useGetKitchenOrders({ status: "preparing" });
   const { data: readyOrders = [], isLoading: isLoadingReady } =
-    useGetKitchenOrders({ status: "ready" });
+    useGetKitchenOrders(
+      { status: "ready" },
+      { refetchInterval: 1000 * 60 * 10 },
+    );
   const bulkUpdateMutation = useBulkUpdateOrderItems();
   const rejectMutation = useRejectOrderItem();
 
@@ -199,11 +203,13 @@ export function KitchenContent() {
   );
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
+    console.log("Drag started:", event.active.id);
     setActiveId(event.active.id as string);
   }, []);
 
-  const handleDragOver = useCallback((event: any) => {
-    setOverId(event.over?.id || null);
+  const handleDragOver = useCallback((event: DragOverEvent) => {
+    setOverId(String(event.over?.id) || null);
+    return;
   }, []);
 
   const handleDragEnd = useCallback(
@@ -211,7 +217,19 @@ export function KitchenContent() {
       const { active, over } = event;
 
       if (over && active.id !== over.id) {
-        const orderId = active.id as string;
+        const activeIdStr = active.id as string;
+        // Parse the combined ID (orderId-columnId) - use lastIndexOf to handle UUIDs with hyphens
+        const lastHyphenIndex = activeIdStr.lastIndexOf("-");
+        const orderId =
+          lastHyphenIndex !== -1
+            ? activeIdStr.substring(0, lastHyphenIndex)
+            : activeIdStr;
+        const sourceColumnId = (
+          lastHyphenIndex !== -1
+            ? activeIdStr.substring(lastHyphenIndex + 1)
+            : ""
+        ) as "accepted" | "preparing" | "ready";
+
         let newStatus: "accepted" | "preparing" | "ready" | null = null;
 
         // Check if over.id is a status string or an order UUID
@@ -220,22 +238,63 @@ export function KitchenContent() {
           // Dropped on column
           newStatus = over.id as "accepted" | "preparing" | "ready";
         } else {
-          // Dropped on an order card - find which column it belongs to
-          const targetOrder = orders.find((o) => o.id === over.id);
-          if (targetOrder && targetOrder.orderItems.length > 0) {
-            newStatus = targetOrder.orderItems[0].status as
-              | "accepted"
-              | "preparing"
-              | "ready";
+          // Dropped on an order card - parse the target order ID and find its status
+          const overIdStr = over.id as string;
+          const lastHyphenIndexTarget = overIdStr.lastIndexOf("-");
+          // const targetOrderId =
+          //   lastHyphenIndexTarget !== -1
+          //     ? overIdStr.substring(0, lastHyphenIndexTarget)
+          //     : overIdStr;
+          const targetColumnId =
+            lastHyphenIndexTarget !== -1
+              ? overIdStr.substring(lastHyphenIndexTarget + 1)
+              : "";
+
+          if (targetColumnId && validStatuses.includes(targetColumnId)) {
+            newStatus = targetColumnId as "accepted" | "preparing" | "ready";
           }
         }
+        if (newStatus === sourceColumnId) {
+          setActiveId(null);
+          setOverId(null);
+          return;
+        }
+        if (newStatus && orderId) {
+          // Validate status transition sequence: accepted -> preparing -> ready
+          const isValidTransition =
+            (sourceColumnId === "accepted" && newStatus === "preparing") ||
+            (sourceColumnId === "preparing" && newStatus === "ready");
 
-        if (newStatus) {
-          const order = orders.find((o) => o.id === orderId);
+          if (!isValidTransition) {
+            console.warn(
+              `Invalid status transition from ${sourceColumnId} to ${newStatus}`,
+            );
+            setActiveId(null);
+            setOverId(null);
+            return;
+          }
+
+          // Find order in the specific source column based on sourceColumnId
+          let sourceArray: KitchenOrder[] = [];
+          switch (sourceColumnId) {
+            case "accepted":
+              sourceArray = ordersByStatus.received;
+              break;
+            case "preparing":
+              sourceArray = ordersByStatus.preparing;
+              break;
+            case "ready":
+              sourceArray = ordersByStatus.ready;
+              break;
+            default:
+              sourceArray = orders; // fallback to combined orders
+          }
+
+          const order = sourceArray.find((o) => o.id === orderId);
           if (order) {
             const itemIds = order.orderItems.map((item) => item.id);
 
-            // Allow moving to any status
+            // Only allow valid status transitions
             bulkUpdateMutation.mutate({
               orderItemIds: itemIds,
               status: newStatus,
@@ -247,7 +306,7 @@ export function KitchenContent() {
       setActiveId(null);
       setOverId(null);
     },
-    [orders, bulkUpdateMutation],
+    [orders, bulkUpdateMutation, ordersByStatus],
   );
 
   const handleDragCancel = useCallback(() => {
@@ -257,8 +316,35 @@ export function KitchenContent() {
 
   // Get active order for drag overlay
   const activeOrder = useMemo(() => {
-    return orders.find((order) => order.id === activeId);
-  }, [orders, activeId]);
+    if (!activeId) return null;
+    // Parse the combined ID (orderId-columnId) - use lastIndexOf to handle UUIDs with hyphens
+    const activeIdStr = activeId as string;
+    const lastHyphenIndex = activeIdStr.lastIndexOf("-");
+    const orderId =
+      lastHyphenIndex !== -1
+        ? activeIdStr.substring(0, lastHyphenIndex)
+        : activeIdStr;
+    const columnId =
+      lastHyphenIndex !== -1 ? activeIdStr.substring(lastHyphenIndex + 1) : "";
+
+    // Find order in the specific column based on columnId
+    let targetArray: KitchenOrder[] = [];
+    switch (columnId) {
+      case "accepted":
+        targetArray = ordersByStatus.received;
+        break;
+      case "preparing":
+        targetArray = ordersByStatus.preparing;
+        break;
+      case "ready":
+        targetArray = ordersByStatus.ready;
+        break;
+      default:
+        targetArray = orders; // fallback to combined orders
+    }
+
+    return targetArray.find((order) => order.id === orderId);
+  }, [orders, activeId, ordersByStatus]);
 
   // Droppable Column Component
   const DroppableColumn = ({
@@ -279,11 +365,47 @@ export function KitchenContent() {
     const { setNodeRef, isOver } = useDroppable({ id });
 
     // Check if hovering over this column or over an order in this column
+    // AND if the drop is valid (following the sequence)
+    const isValidDrop = useMemo(() => {
+      if (!activeId || !overId) return false;
+
+      // Get source column from activeId
+      const activeIdStr = activeId as string;
+      const lastHyphenIndex = activeIdStr.lastIndexOf("-");
+      const sourceColumnId =
+        lastHyphenIndex !== -1
+          ? activeIdStr.substring(lastHyphenIndex + 1)
+          : "";
+
+      // Determine target column
+      let targetColumnId = id;
+      if (overId !== id && overId) {
+        const overIdStr = overId as string;
+        const lastHyphenIndexTarget = overIdStr.lastIndexOf("-");
+        targetColumnId =
+          lastHyphenIndexTarget !== -1
+            ? overIdStr.substring(lastHyphenIndexTarget + 1)
+            : "";
+      }
+
+      // Only allow forward progression: accepted -> preparing -> ready
+      if (sourceColumnId === "accepted" && targetColumnId === "preparing")
+        return true;
+      if (sourceColumnId === "preparing" && targetColumnId === "ready")
+        return true;
+
+      return false;
+    }, [activeId, overId, id]);
+
     const isOverColumn =
-      isOver || (overId && columnOrders.some((order) => order.id === overId));
+      isValidDrop &&
+      (isOver ||
+        overId === id ||
+        (overId &&
+          columnOrders.some((order) => `${order.id}-${id}` === overId)));
 
     return (
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full min-w-80 flex-1">
         {/* Column Header */}
         <div className="rounded-b-none shadow-sm border-b-0 rounded-t-xl border">
           <CardContent className="p-4">
@@ -316,7 +438,11 @@ export function KitchenContent() {
             style={{ maxHeight: "calc(100vh - 220px)" }}
           >
             {columnOrders.map((order) => (
-              <DraggableOrderCard key={order.id} order={order}>
+              <DraggableOrderCard
+                key={`${order.id}-${id}`}
+                order={order}
+                columnId={id}
+              >
                 <KitchenOrderCard
                   order={order}
                   onStartPreparing={handleStartPreparing}
@@ -459,7 +585,7 @@ export function KitchenContent() {
           onDragEnd={handleDragEnd}
           onDragCancel={handleDragCancel}
         >
-          <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 p-6 overflow-hidden">
+          <div className="flex-1 flex gap-6 p-6 overflow-x-auto overflow-y-hidden">
             {/* Received Column */}
             <DroppableColumn
               id="accepted"
@@ -494,7 +620,7 @@ export function KitchenContent() {
           {/* Drag Overlay */}
           <DragOverlay>
             {activeOrder ? (
-              <div className="opacity-75">
+              <div className="opacity-95">
                 <KitchenOrderCard
                   order={activeOrder}
                   onStartPreparing={handleStartPreparing}

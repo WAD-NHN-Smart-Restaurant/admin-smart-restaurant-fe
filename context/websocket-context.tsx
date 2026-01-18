@@ -16,6 +16,9 @@ import { io, Socket } from "socket.io-client";
 export enum WaiterSocketEvent {
   NEW_ORDER = "new-order",
   ORDER_READY = "order-ready",
+  BILL_REQUESTED = "bill-requested",
+  WAITER_CALLED = "waiter-called",
+  CALL_WAITER = "call-waiter",
 }
 
 export enum KitchenSocketEvent {
@@ -35,7 +38,12 @@ export enum BillSocketEvent {
 
 interface WebSocketContextType {
   isConnected: boolean;
-  joinRestaurant: (restaurantId: string | undefined, role: string) => void;
+  joinRestaurant: (
+    restaurantId: string | null | undefined,
+    role: string,
+    waiterId?: string,
+    assignedTableIds?: string[],
+  ) => void;
   leaveRestaurant: (restaurantId: string) => void;
   subscribe: (event: string, callback: (data: unknown) => void) => () => void;
 }
@@ -99,13 +107,21 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   }, [url]);
 
   const joinRestaurant = useCallback(
-    (restaurantId: string | undefined, role: string) => {
+    (
+      restaurantId: string | null | undefined,
+      role: string,
+      waiterId?: string,
+      assignedTableIds?: string[],
+    ) => {
       if (socketRef.current?.connected) {
-        // TODO: Pass restaurantId when available, for now will use default room in backend
-        socketRef.current.emit("join-restaurant", { restaurantId, role });
-        console.log(
-          `Joined restaurant: ${restaurantId || "default"} as ${role}`,
-        );
+        // Use restaurant_id from profile if available, otherwise use 'default'
+        const roomId = restaurantId || "default";
+        socketRef.current.emit("join-restaurant", {
+          restaurantId: roomId,
+          role,
+          waiterId,
+          assignedTableIds,
+        });
       } else {
         console.warn("Cannot join restaurant: Socket not connected");
       }
@@ -116,7 +132,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   const leaveRestaurant = useCallback((restaurantId: string) => {
     if (socketRef.current?.connected) {
       socketRef.current.emit("leave-restaurant", { restaurantId });
-      console.log(`Left restaurant: ${restaurantId}`);
     }
   }, []);
 

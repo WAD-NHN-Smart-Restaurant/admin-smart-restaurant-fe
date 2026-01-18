@@ -49,7 +49,6 @@ export function OrderCard({
       return {
         label: "Ready to Serve",
         className: "bg-green-100 text-green-700",
-        borderColor: "border-l-green-500",
         animate: false,
       };
     }
@@ -70,8 +69,8 @@ export function OrderCard({
       };
     }
     return {
-      label: "Unknown",
-      className: "bg-slate-50 text-slate-800",
+      label: "In Kitchen",
+      className: "bg-blue-100 text-blue-700",
       borderColor: "",
       animate: false,
     };
@@ -180,7 +179,7 @@ export function OrderCard({
               </div>
               <div className="flex items-center gap-2">
                 <div className="font-semibold text-slate-900 text-right">
-                  ${(item.quantity * item.unitPrice).toFixed(2)}
+                  ${item.totalPrice.toFixed(2)}
                 </div>
                 {/* Per-item actions for pending items */}
                 {item.status === OrderItemStatus.PENDING &&

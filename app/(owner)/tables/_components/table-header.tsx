@@ -5,16 +5,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Download, Plus } from "lucide-react";
+import { Download, Plus, Users } from "lucide-react";
 
 interface TableHeaderProps {
   onCreateClick: () => void;
   onDownloadAll: (format: "png" | "pdf") => void;
+  onBulkAssignClick?: () => void;
 }
 
 export function TableHeader({
   onCreateClick,
   onDownloadAll,
+  onBulkAssignClick,
 }: TableHeaderProps) {
   return (
     <div className="border-b">
@@ -29,6 +31,12 @@ export function TableHeader({
             </p>
           </div>
           <div className="flex gap-2">
+            {onBulkAssignClick && (
+              <Button variant="outline" onClick={onBulkAssignClick}>
+                <Users className="mr-2 h-4 w-4" />
+                Assign Waiter
+              </Button>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">

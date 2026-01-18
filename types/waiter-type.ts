@@ -80,16 +80,26 @@ export interface Order {
 // Table assignment interface
 export interface TableAssignment {
   id: string;
-  waiterId: string;
-  tableId: string;
-  assignedAt: string;
-  table: {
+  tableNumber: string;
+  capacity: number;
+  location?: string;
+  description?: string;
+  status: string;
+  qrToken?: string;
+  qrTokenCreatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  restaurantId: string;
+  assignedWaiterId?: string;
+  assignedAt?: string;
+  orders: Array<{
     id: string;
-    tableNumber: string;
-    capacity: number;
-    location?: string;
     status: string;
-  };
+    createdAt: string;
+    totalAmount: number;
+  }>;
+  hasActiveOrder?: boolean;
+  activeOrdersCount?: number;
 }
 
 // Request interfaces

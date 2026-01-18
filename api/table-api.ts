@@ -21,6 +21,9 @@ const TABLES_API = {
   GENERATE_QR: (id: string) => `/api/admin/tables/${id}/qr/generate`,
   DOWNLOAD_QR: (id: string) => `/api/admin/tables/${id}/qr/download`,
   DOWNLOAD_ALL_QR: "/api/admin/tables/qr/download-all",
+  ASSIGN_WAITER: (id: string) => `/api/admin/tables/${id}/assign-waiter`,
+  USERS_BY_ROLE: (restaurantId: string, role: string) =>
+    `/api/profiles/restaurant/${restaurantId}/role/${role}`,
 };
 
 // Get all tables with optional filters
@@ -146,4 +149,59 @@ export const triggerDownload = (blob: Blob, filename: string) => {
   link.click();
   document.body.removeChild(link);
   window.URL.revokeObjectURL(url);
+};
+
+// Assign waiter to table
+export const assignWaiterToTable = async (
+  tableId: string,
+  waiterId: string | null,
+): Promise<ApiResponse<Table>> => {
+  const response = await api.patch<
+    { waiterId: string | null },
+    ApiResponse<Table>
+  >(TABLES_API.ASSIGN_WAITER(tableId), { waiterId });
+  return response.data;
+};
+
+// Bulk assign waiter to multiple tables
+export const bulkAssignWaiterToTables = async (
+  tableIds: string[],
+  waiterId: string | null,
+): Promise<ApiResponse<{ count: number; message: string }>> => {
+  const response = await api.patch<
+    { tableIds: string[]; waiterId: string | null },
+    ApiResponse<{ count: number; message: string }>
+  >("/api/admin/tables/bulk-assign-waiter", { tableIds, waiterId });
+  return response.data;
+};
+
+// Get users by role (for waiter selection)
+export const getUsersByRole = async (
+  restaurantId: string,
+  role: string,
+): Promise<
+  ApiResponse<
+    Array<{
+      id: string;
+      email: string;
+      fullName: string;
+      phoneNumber: string;
+      avatarUrl: string;
+      role: string;
+    }>
+  >
+> => {
+  const response = await api.get<
+    ApiResponse<
+      Array<{
+        id: string;
+        email: string;
+        fullName: string;
+        phoneNumber: string;
+        avatarUrl: string;
+        role: string;
+      }>
+    >
+  >(TABLES_API.USERS_BY_ROLE(restaurantId, role));
+  return response.data;
 };

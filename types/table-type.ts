@@ -17,6 +17,7 @@ export interface Table {
   status: TableStatus;
   qrTokenCreatedAt?: string;
   qrUrl?: string;
+  assignedWaiterId?: string | null;
   createdAt: string;
   updatedAt: string;
 }

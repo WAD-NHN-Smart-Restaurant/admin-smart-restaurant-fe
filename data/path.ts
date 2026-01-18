@@ -23,8 +23,11 @@ export const PROTECTED_PATHS = {
     },
   },
   WAITER: {
-    ORDERS: "/orders",
-    BILLS: "/bills",
+    ORDERS: "/waiter/orders",
+    BILLS: "/waiter/bills",
+  },
+  KITCHEN: {
+    INDEX: "/kitchen",
   },
 };
 

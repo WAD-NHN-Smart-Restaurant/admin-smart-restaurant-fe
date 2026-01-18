@@ -18,6 +18,7 @@ interface TableGridProps {
   onDownloadQR: (table: Table, format: "png" | "pdf") => void;
   onViewQR: (table: Table) => void;
   onDelete: (table: Table) => void;
+  onAssignWaiter: (tableId: string, waiterId: string | null) => void;
   isGeneratingQR: boolean;
 }
 
@@ -31,6 +32,7 @@ export function TableGrid({
   onDownloadQR,
   onViewQR,
   onDelete,
+  onAssignWaiter,
   isGeneratingQR,
 }: TableGridProps) {
   return (
@@ -64,6 +66,7 @@ export function TableGrid({
                 onDownloadQR={onDownloadQR}
                 onViewQR={onViewQR}
                 onDelete={onDelete}
+                onAssignWaiter={onAssignWaiter}
                 isGeneratingQR={isGeneratingQR}
               />
             ))}
