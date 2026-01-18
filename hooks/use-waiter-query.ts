@@ -15,12 +15,25 @@ import {
   getOrdersByTableId,
 } from "@/api/waiter-api";
 import {
+  getBills,
+  getBillById,
+  createBill,
+  applyDiscount,
+  processPayment,
+} from "@/api/bill-api";
+import {
   OrderFilter,
   AcceptOrderItemRequest,
   RejectOrderItemRequest,
   SendToKitchenRequest,
   MarkAsServedRequest,
 } from "@/types/waiter-type";
+import {
+  BillFilter,
+  CreateBillRequest,
+  ApplyDiscountRequest,
+  ProcessPaymentRequest,
+} from "@/types/bill-type";
 import { useEffect, useMemo } from "react";
 import { useWebSocket, WaiterSocketEvent } from "@/context/websocket-context";
 import { useAuth } from "@/context/auth-context";
@@ -36,6 +49,10 @@ export const waiterQueryKeys = {
   assignedTables: () => [...waiterQueryKeys.all, "assigned-tables"] as const,
   tableOrders: (tableId: string) =>
     [...waiterQueryKeys.all, "table-orders", tableId] as const,
+  bills: () => [...waiterQueryKeys.all, "bills"] as const,
+  billsList: (filters?: BillFilter) =>
+    [...waiterQueryKeys.bills(), "list", filters] as const,
+  bill: (orderId: string) => [...waiterQueryKeys.bills(), orderId] as const,
 };
 
 // Hook to get waiter orders
@@ -239,6 +256,27 @@ export const useWaiterSocketListeners = (
         console.log("Call waiter event received:", data);
         onCallWaiter?.(data as { table_id: string; timestamp: string });
 
+        // Notify parent about unseen updates in tables tab
+        onUnseenUpdate?.(["tables"]);
+
+        // Play sound notification
+        const audio = new Audio("/sounds/noti.wav");
+        audio.play().catch((err) => console.error("Error playing sound:", err));
+      },
+    );
+
+    // Listen for bill-requested events
+    const unsubscribeBillRequested = subscribe(
+      WaiterSocketEvent.BILL_REQUESTED,
+      (data: unknown) => {
+        console.log("Bill requested:", data);
+        // Refetch bills data
+        queryClient.refetchQueries({
+          queryKey: waiterQueryKeys.bills(),
+        });
+        // Notify parent about unseen updates in bills tab
+        onUnseenUpdate?.(["bills"]);
+
         // Play sound notification
         const audio = new Audio("/sounds/noti.wav");
         audio.play().catch((err) => console.error("Error playing sound:", err));
@@ -250,6 +288,7 @@ export const useWaiterSocketListeners = (
       unsubscribeNewOrder();
       unsubscribeOrderReady();
       unsubscribeCallWaiter();
+      unsubscribeBillRequested();
       const restaurantId = profile?.restaurantId;
       if (restaurantId) {
         leaveRestaurant(restaurantId);
@@ -267,4 +306,85 @@ export const useWaiterSocketListeners = (
     user?.id,
     assignedTableIds,
   ]);
+};
+
+// ============================================
+// BILLS HOOKS
+// ============================================
+
+// Hook to get bills with filtering and pagination
+export const useGetBills = (filters?: BillFilter) => {
+  const queryKey = useMemo(() => waiterQueryKeys.billsList(filters), [filters]);
+
+  return useSafeQuery(queryKey, () => getBills(filters), {
+    errorMessage: "Failed to fetch bills",
+    staleTime: 30000,
+  });
+};
+
+// Hook to get single bill by order ID
+export const useGetBill = (orderId: string) => {
+  return useSafeQuery(
+    waiterQueryKeys.bill(orderId),
+    () => getBillById(orderId),
+    {
+      errorMessage: "Failed to fetch bill",
+      enabled: !!orderId,
+    },
+  );
+};
+
+// Hook to create bill
+export const useCreateBill = () => {
+  const queryClient = useQueryClient();
+
+  return useSafeMutation((data: CreateBillRequest) => createBill(data), {
+    errorMessage: "Failed to create bill",
+    successMessage: "Bill created successfully",
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: waiterQueryKeys.bills() });
+      queryClient.invalidateQueries({ queryKey: waiterQueryKeys.orders() });
+    },
+  });
+};
+
+// Hook to apply discount
+export const useApplyDiscount = () => {
+  const queryClient = useQueryClient();
+
+  return useSafeMutation(
+    ({ orderId, data }: { orderId: string; data: ApplyDiscountRequest }) =>
+      applyDiscount(orderId, data),
+    {
+      errorMessage: "Failed to apply discount",
+      successMessage: "Discount applied successfully",
+      onSuccess: (_, variables) => {
+        queryClient.invalidateQueries({
+          queryKey: waiterQueryKeys.bill(variables.orderId),
+        });
+        queryClient.invalidateQueries({ queryKey: waiterQueryKeys.bills() });
+      },
+    },
+  );
+};
+
+// Hook to process payment
+export const useProcessPayment = () => {
+  const queryClient = useQueryClient();
+
+  return useSafeMutation(
+    ({ orderId, data }: { orderId: string; data: ProcessPaymentRequest }) =>
+      processPayment(orderId, data),
+    {
+      errorMessage: "Failed to process payment",
+      successMessage: "Payment processed successfully",
+      onSuccess: (_, variables) => {
+        queryClient.invalidateQueries({
+          queryKey: waiterQueryKeys.bill(variables.orderId),
+        });
+        queryClient.invalidateQueries({ queryKey: waiterQueryKeys.bills() });
+        queryClient.invalidateQueries({ queryKey: waiterQueryKeys.orders() });
+      },
+    },
+  );
 };

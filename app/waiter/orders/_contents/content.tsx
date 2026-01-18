@@ -19,13 +19,14 @@ import {
   useWaiterSocketListeners,
 } from "@/hooks/use-waiter-query";
 import { Order, OrderItemStatus, OrderStatus } from "@/types/waiter-type";
-import { useRouter } from "next/navigation";
-import { Monitor, Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useWaiterLayoutContext } from "../../layout";
 
 export function OrdersContent() {
-  const router = useRouter();
   const { user } = useAuth();
+  const { calledTableIds, addCalledTable, clearCalledTable } =
+    useWaiterLayoutContext();
 
   // State
   const [selectedTab, setSelectedTab] = useState<string>("pending");
@@ -38,10 +39,7 @@ export function OrdersContent() {
   const [showAssignedOnly, setShowAssignedOnly] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // State for tables tab call-waiter tracking
-  const [calledTableIds, setCalledTableIds] = useState<Set<string>>(new Set());
-
-  // Track which tabs have unseen updates
+  // Track which SUB-TABS have unseen updates (pending, accepted, ready, tables)
   const [hasUnseenUpdates, setHasUnseenUpdates] = useState<
     Record<string, boolean>
   >({
@@ -87,8 +85,8 @@ export function OrdersContent() {
   // Handle call-waiter events
   const handleCallWaiter = useCallback(
     (data: { table_id: string; timestamp: string }) => {
-      // Add to called tables set
-      setCalledTableIds((prev) => new Set(prev).add(data.table_id));
+      // Add to called tables set via context
+      addCalledTable(data.table_id);
 
       // Mark tables tab as having unseen updates
       setHasUnseenUpdates((prev) => ({
@@ -96,15 +94,19 @@ export function OrdersContent() {
         tables: true,
       }));
     },
-    [],
+    [addCalledTable],
   );
 
   // Listen for real-time updates (handles room joining internally)
+  // This manages SUB-TAB indicators within the orders page
   useWaiterSocketListeners((tabs) => {
     setHasUnseenUpdates((prev) => {
       const updated = { ...prev };
       tabs.forEach((tab) => {
-        updated[tab] = true;
+        // Only update if not currently viewing that tab
+        if (tab !== selectedTab) {
+          updated[tab] = true;
+        }
       });
       return updated;
     });
@@ -142,10 +144,6 @@ export function OrdersContent() {
       [tab]: false,
     }));
   }, []);
-
-  const handleOpenKDS = useCallback(() => {
-    router.push("/kitchen");
-  }, [router]);
 
   const handleAcceptItem = useCallback(
     (itemId: string) => {
@@ -258,7 +256,7 @@ export function OrdersContent() {
           {/* Header */}
           <div className="bg-white border-b shadow-sm py-7 px-4 lg:px-8">
             <div className="flex justify-between items-center">
-              <div className="pl-10 lg:pl-0">
+              <div>
                 <h1 className="text-xl lg:text-2xl font-bold text-slate-900">
                   Waiter Dashboard
                 </h1>
@@ -292,10 +290,12 @@ export function OrdersContent() {
                 selectedTab === "pending" ? "text-amber-600" : "text-slate-500"
               }`}
             >
-              <span>Pending</span>
-              {hasUnseenUpdates.pending && selectedTab !== "pending" && (
-                <AlertCircle className="h-4 w-4 text-amber-600" />
-              )}
+              <div className="flex items-center gap-1">
+                {hasUnseenUpdates.pending && selectedTab !== "pending" && (
+                  <AlertCircle className="h-4 w-4 text-amber-600" />
+                )}
+                <span>Pending</span>
+              </div>
               {selectedTab === "pending" && (
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-amber-600" />
               )}
@@ -306,10 +306,12 @@ export function OrdersContent() {
                 selectedTab === "accepted" ? "text-blue-600" : "text-slate-500"
               }`}
             >
-              <span>Accepted</span>
-              {hasUnseenUpdates.accepted && selectedTab !== "accepted" && (
-                <AlertCircle className="h-4 w-4 text-blue-600" />
-              )}
+              <div className="flex items-center gap-1">
+                {hasUnseenUpdates.accepted && selectedTab !== "accepted" && (
+                  <AlertCircle className="h-4 w-4 text-blue-600" />
+                )}
+                <span>Accepted</span>
+              </div>
               {selectedTab === "accepted" && (
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600" />
               )}
@@ -320,10 +322,12 @@ export function OrdersContent() {
                 selectedTab === "ready" ? "text-green-600" : "text-slate-500"
               }`}
             >
-              <span>Ready to Serve</span>
-              {hasUnseenUpdates.ready && selectedTab !== "ready" && (
-                <AlertCircle className="h-4 w-4 text-green-600" />
-              )}
+              <div className="flex items-center gap-1">
+                {hasUnseenUpdates.ready && selectedTab !== "ready" && (
+                  <AlertCircle className="h-4 w-4 text-green-600" />
+                )}
+                <span>Ready to Serve</span>
+              </div>
               {selectedTab === "ready" && (
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-green-600" />
               )}
@@ -334,10 +338,13 @@ export function OrdersContent() {
                 selectedTab === "tables" ? "text-slate-700" : "text-slate-500"
               }`}
             >
-              <span>My Tables</span>
-              {hasUnseenUpdates.tables && selectedTab !== "tables" && (
-                <AlertCircle className="h-4 w-4 text-slate-700" />
-              )}
+              <div className="flex items-center gap-1">
+                <span>My Tables</span>
+                {((hasUnseenUpdates.tables && selectedTab !== "tables") ||
+                  calledTableIds.size > 0) && (
+                  <AlertCircle className="h-4 w-4 text-slate-700" />
+                )}
+              </div>
               {selectedTab === "tables" && (
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-700" />
               )}
@@ -349,13 +356,7 @@ export function OrdersContent() {
             <TablesTabContent
               onCallWaiter={handleCallWaiter}
               calledTableIds={calledTableIds}
-              onClearTableCall={(tableId) => {
-                setCalledTableIds((prev) => {
-                  const newSet = new Set(prev);
-                  newSet.delete(tableId);
-                  return newSet;
-                });
-              }}
+              onClearTableCall={clearCalledTable}
             />
           ) : ordersLoading ? (
             <PageLoadingSkeleton />

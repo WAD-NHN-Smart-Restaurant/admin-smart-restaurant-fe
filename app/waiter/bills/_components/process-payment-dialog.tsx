@@ -66,7 +66,7 @@ export function ProcessPaymentDialog({
         <DialogHeader>
           <DialogTitle>Process Payment</DialogTitle>
           <DialogDescription>
-            Select payment method for Table {bill?.table.tableNumber}
+            Select payment method for Table {bill?.tableNumber}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -97,31 +97,11 @@ export function ProcessPaymentDialog({
           </div>
           {bill && (
             <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span className="text-gray-900">
-                    ${bill.subtotal.toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Tax</span>
-                  <span className="text-gray-900">${bill.tax.toFixed(2)}</span>
-                </div>
-                {bill.discount > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-green-600">Discount</span>
-                    <span className="text-green-600">
-                      -${bill.discount.toFixed(2)}
-                    </span>
-                  </div>
-                )}
-                <div className="flex justify-between text-lg font-bold border-t pt-2">
-                  <span className="text-gray-900">Total Amount</span>
-                  <span className="text-gray-900">
-                    ${bill.total.toFixed(2)}
-                  </span>
-                </div>
+              <div className="flex justify-between text-lg font-bold">
+                <span className="text-gray-900">Total Amount</span>
+                <span className="text-gray-900">
+                  ${bill.totalAmount.toFixed(2)}
+                </span>
               </div>
             </div>
           )}

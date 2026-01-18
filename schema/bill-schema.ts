@@ -34,6 +34,7 @@ export const processPaymentSchema = z.object({
 
 // Filter schema for bills
 export const billFilterSchema = z.object({
+  waiterId: z.string().optional(),
   search: z.string().optional(),
   tableId: z.string().optional(),
   paymentStatus: z.nativeEnum(PaymentStatus).optional(),

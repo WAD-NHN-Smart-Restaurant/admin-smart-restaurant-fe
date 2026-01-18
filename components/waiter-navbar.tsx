@@ -2,31 +2,54 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ClipboardList, DollarSign, LogOut } from "lucide-react";
+import { ClipboardList, DollarSign, LogOut, AlertCircle } from "lucide-react";
 import { cn } from "@/utils/utils";
 import { useAuth } from "@/context/auth-context";
 import { PROTECTED_PATHS } from "@/data/path";
+import { useEffect } from "react";
 
 const navItems = [
   {
     name: "Orders",
     href: PROTECTED_PATHS.WAITER.ORDERS,
     icon: ClipboardList,
+    key: "orders",
   },
   {
     name: "Bills",
     href: PROTECTED_PATHS.WAITER.BILLS,
     icon: DollarSign,
+    key: "bills",
   },
 ];
 
-export function WaiterNavbar() {
+interface WaiterNavbarProps {
+  hasUnseenUpdates?: Record<string, boolean>;
+  onClearUnseen?: (key: string) => void;
+}
+
+export function WaiterNavbar({
+  hasUnseenUpdates = {},
+  onClearUnseen,
+}: WaiterNavbarProps) {
   const pathname = usePathname();
   const { logout } = useAuth();
 
   const handleLogout = async () => {
     await logout();
   };
+
+  // Clear unseen updates when navigating to a page
+  useEffect(() => {
+    const currentNav = navItems.find((item) => pathname.startsWith(item.href));
+    if (currentNav && onClearUnseen) {
+      onClearUnseen(currentNav.key);
+      // Also clear tables notification when navigating to orders
+      if (currentNav.key === "orders") {
+        onClearUnseen("tables");
+      }
+    }
+  }, [pathname, onClearUnseen]);
 
   return (
     <>
@@ -36,19 +59,35 @@ export function WaiterNavbar() {
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname.startsWith(item.href);
+            // Show notification for Orders if either orders or tables have updates
+            const hasUnseen =
+              item.key === "orders"
+                ? hasUnseenUpdates.orders || hasUnseenUpdates.tables
+                : hasUnseenUpdates[item.key];
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-1 px-4 py-2 flex-1 transition-colors",
+                  "flex items-center justify-center gap-1 px-4 py-2 flex-1 transition-colors",
                   isActive
                     ? "text-blue-600"
                     : "text-gray-600 hover:text-gray-900",
                 )}
               >
-                <Icon className="h-6 w-6" />
-                <span className="text-xs font-medium">{item.name}</span>
+                <div
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-1 px-4 py-2 relative",
+                  )}
+                >
+                  <div className="flex items-center gap-1">
+                    <Icon className="h-8 w-8" />
+                  </div>
+                  <span className="text-xs font-medium">{item.name}</span>
+                  {hasUnseen && !isActive && (
+                    <AlertCircle className="h-3 w-3 text-amber-600 absolute top-1 right-2" />
+                  )}
+                </div>
               </Link>
             );
           })}
@@ -75,6 +114,11 @@ export function WaiterNavbar() {
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname.startsWith(item.href);
+              // Show notification for Orders if either orders or tables have updates
+              const hasUnseen =
+                item.key === "orders"
+                  ? hasUnseenUpdates.orders || hasUnseenUpdates.tables
+                  : hasUnseenUpdates[item.key];
               return (
                 <Link
                   key={item.href}
@@ -86,8 +130,14 @@ export function WaiterNavbar() {
                       : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
                   )}
                 >
-                  <Icon className="h-5 w-5" />
+                  <div className="flex items-center gap-1">
+                    <Icon className="h-5 w-5" />
+                  </div>
                   <span>{item.name}</span>
+
+                  {hasUnseen && !isActive && (
+                    <AlertCircle className="h-4 w-4 text-amber-600" />
+                  )}
                 </Link>
               );
             })}

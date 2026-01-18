@@ -26,46 +26,44 @@ export interface Payment {
   updatedAt: string;
 }
 
-// Bill interface
+// Bill interface (matches API response from getBillsByRestaurant)
 export interface Bill {
-  id: string;
   orderId: string;
-  tableId: string;
-  subtotal: number;
-  tax: number;
-  discount: number;
-  total: number;
+  tableNumber: string;
+  totalAmount: number;
+  status: string;
+  itemCount: number;
+  paymentStatus?: string;
+  paymentMethod?: string;
   createdAt: string;
   updatedAt: string;
-  order: {
-    id: string;
-    status: string;
-    createdAt: string;
-    orderItems: Array<{
+}
+
+// Detailed Bill interface (for getBill endpoint)
+export interface BillDetails {
+  bill: {
+    orderId: string;
+    tableNumber: string;
+    items: Array<{
       id: string;
+      name: string;
       quantity: number;
       unitPrice: number;
-      totalPrice: number;
-      menuItem: {
-        id: string;
+      modifiers?: Array<{
         name: string;
-      };
-      orderItemOptions: Array<{
-        id: string;
-        priceAtTime: number;
-        modifierOption?: {
-          id: string;
-          name: string;
-        };
+        price: number;
       }>;
+      totalPrice: number;
     }>;
+    subtotal: number;
+    discount: number;
+    tax: number;
+    total: number;
+    status: string;
+    payments: Payment[];
+    createdAt: string;
+    updatedAt: string;
   };
-  table: {
-    id: string;
-    tableNumber: string;
-    location?: string;
-  };
-  payments: Payment[];
 }
 
 // Request interfaces

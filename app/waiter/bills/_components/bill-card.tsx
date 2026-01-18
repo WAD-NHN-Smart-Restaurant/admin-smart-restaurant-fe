@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Bill, PaymentStatus } from "@/types/bill-type";
-import { Clock, MapPin, Download, DollarSign, CreditCard } from "lucide-react";
+import { Clock, Download, DollarSign, CreditCard } from "lucide-react";
 import { format } from "date-fns";
 import { useCallback, useMemo } from "react";
 
@@ -25,20 +25,16 @@ export function BillCard({
   onApplyDiscount,
   isProcessing = false,
 }: BillCardProps) {
-  // Get payment status
+  // Get payment status from bill.paymentStatus or bill.status
   const paymentStatus = useMemo(() => {
-    const successPayment = bill.payments.find(
-      (p) => p.status === PaymentStatus.SUCCESS,
-    );
-    if (successPayment) return PaymentStatus.SUCCESS;
-
-    const pendingPayment = bill.payments.find(
-      (p) => p.status === PaymentStatus.PENDING,
-    );
-    if (pendingPayment) return PaymentStatus.PENDING;
-
+    if (bill.paymentStatus === "success" || bill.status === "completed") {
+      return PaymentStatus.SUCCESS;
+    }
+    if (bill.paymentStatus === "pending" || bill.status === "payment_pending") {
+      return PaymentStatus.PENDING;
+    }
     return PaymentStatus.PENDING;
-  }, [bill.payments]);
+  }, [bill.paymentStatus, bill.status]);
 
   const getStatusColor = useCallback((status: PaymentStatus) => {
     switch (status) {
@@ -62,7 +58,7 @@ export function BillCard({
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h3 className="text-lg font-semibold text-gray-900">
-              Table {bill.table.tableNumber}
+              Table {bill.tableNumber}
             </h3>
             <Badge
               variant="outline"
@@ -72,10 +68,6 @@ export function BillCard({
             </Badge>
           </div>
           <div className="flex items-center gap-4 text-sm text-gray-600">
-            <div className="flex items-center gap-1">
-              <MapPin className="h-3 w-3" />
-              <span>{bill.table.location || "No location"}</span>
-            </div>
             <div className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
               <span>{format(new Date(bill.createdAt), "HH:mm")}</span>
@@ -88,46 +80,17 @@ export function BillCard({
       </div>
 
       {/* Bill Items Summary */}
-      <div className="space-y-2 mb-4">
-        {bill.order.orderItems?.slice(0, 3).map((item) => (
-          <div
-            key={item.id}
-            className="flex items-center justify-between text-sm"
-          >
-            <span className="text-gray-700">
-              {item.quantity}x {item.menuItem.name}
-            </span>
-            <span className="text-gray-900 font-medium">
-              ${item.totalPrice.toFixed(2)}
-            </span>
-          </div>
-        ))}
-        {bill.order.orderItems?.length > 3 && (
-          <p className="text-xs text-gray-500">
-            +{bill.order.orderItems.length - 3} more items...
-          </p>
-        )}
+      <div className="mb-4 py-3 border-b">
+        <div className="text-sm text-gray-600">
+          {bill.itemCount} item{bill.itemCount !== 1 ? "s" : ""} ordered
+        </div>
       </div>
 
       {/* Bill Totals */}
-      <div className="space-y-1 mb-4 pt-3 border-t">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600">Subtotal</span>
-          <span className="text-gray-900">${bill.subtotal.toFixed(2)}</span>
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600">Tax</span>
-          <span className="text-gray-900">${bill.tax.toFixed(2)}</span>
-        </div>
-        {bill.discount > 0 && (
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-green-600">Discount</span>
-            <span className="text-green-600">-${bill.discount.toFixed(2)}</span>
-          </div>
-        )}
-        <div className="flex items-center justify-between text-base font-bold pt-2 border-t">
+      <div className="space-y-1 mb-4">
+        <div className="flex items-center justify-between text-base font-bold">
           <span className="text-gray-900">Total</span>
-          <span className="text-gray-900">${bill.total.toFixed(2)}</span>
+          <span className="text-gray-900">${bill.totalAmount.toFixed(2)}</span>
         </div>
       </div>
 
@@ -137,7 +100,7 @@ export function BillCard({
           size="sm"
           variant="outline"
           className="flex-1"
-          onClick={() => onPrint(bill.id)}
+          onClick={() => onPrint(bill.orderId)}
           disabled={isProcessing}
         >
           <Download className="h-3 w-3 mr-2" />

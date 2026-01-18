@@ -60,12 +60,12 @@ export function ApplyDiscountDialog({
     if (isNaN(value)) return 0;
 
     if (discountType === "percentage") {
-      return (bill.subtotal * value) / 100;
+      return (bill.totalAmount * value) / 100;
     }
     return value;
   }, [bill, discountValue, discountType]);
 
-  const newTotal = bill ? bill.total - calculatedDiscount() : 0;
+  const newTotal = bill ? bill.totalAmount - calculatedDiscount() : 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -73,7 +73,7 @@ export function ApplyDiscountDialog({
         <DialogHeader>
           <DialogTitle>Apply Discount</DialogTitle>
           <DialogDescription>
-            Apply a discount to Table {bill?.table.tableNumber}
+            Apply a discount to Table {bill?.tableNumber}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -114,7 +114,9 @@ export function ApplyDiscountDialog({
             <div className="bg-gray-50 p-4 rounded-lg space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Original Total</span>
-                <span className="text-gray-900">${bill.total.toFixed(2)}</span>
+                <span className="text-gray-900">
+                  ${bill.totalAmount.toFixed(2)}
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-green-600">Discount</span>

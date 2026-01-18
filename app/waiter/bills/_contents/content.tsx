@@ -2,8 +2,8 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { ProtectedRoute } from "@/components/auth-guard";
+import { useAuth } from "@/context/auth-context";
 import { BillsHeader } from "../_components/bills-header";
-import { BillStats } from "../_components/bill-stats";
 import { BillCard } from "../_components/bill-card";
 import { CreateBillDialog } from "../_components/create-bill-dialog";
 import { ApplyDiscountDialog } from "../_components/apply-discount-dialog";
@@ -26,8 +26,14 @@ import {
 } from "@/types/bill-type";
 
 export function BillsContent() {
+  const { user } = useAuth();
+
   // State
-  const [filters] = useState<BillFilter>({ page: 1, limit: 10 });
+  const [filters] = useState<BillFilter>({
+    page: 1,
+    limit: 10,
+    waiterId: user?.id, // Filter by current waiter
+  });
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [discountDialogOpen, setDiscountDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
@@ -45,26 +51,6 @@ export function BillsContent() {
 
   // Get bills from data
   const bills = useMemo(() => billsData?.items || [], [billsData]);
-
-  // Calculate stats
-  const stats = useMemo(() => {
-    const pending = bills.filter(
-      (b) => !b.payments.some((p) => p.status === PaymentStatus.SUCCESS),
-    ).length;
-    const paid = bills.filter((b) =>
-      b.payments.some((p) => p.status === PaymentStatus.SUCCESS),
-    ).length;
-    const totalRevenue = bills
-      .filter((b) => b.payments.some((p) => p.status === PaymentStatus.SUCCESS))
-      .reduce((sum, b) => sum + b.total, 0);
-
-    return {
-      total: bills.length,
-      pending,
-      paid,
-      totalRevenue,
-    };
-  }, [bills]);
 
   // Handlers
   const handleCreateBill = useCallback(() => {
@@ -180,7 +166,6 @@ export function BillsContent() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Stats */}
-          <BillStats stats={stats} />
 
           {/* Bills Grid */}
           {bills.length === 0 ? (
@@ -192,7 +177,7 @@ export function BillsContent() {
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {bills.map((bill) => (
                 <BillCard
-                  key={bill.id}
+                  key={bill.orderId}
                   bill={bill}
                   onViewDetails={handleViewDetails}
                   onPrint={handlePrint}

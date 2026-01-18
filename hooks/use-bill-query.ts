@@ -72,7 +72,7 @@ export const useCreateBill = () => {
       // Invalidate bills list
       queryClient.invalidateQueries({ queryKey: billQueryKeys.all });
       // Set the new bill in cache
-      queryClient.setQueryData(billQueryKeys.detail(data.id), data);
+      queryClient.setQueryData(billQueryKeys.detail(data.orderId), data);
       if (data.orderId) {
         queryClient.setQueryData(billQueryKeys.byOrder(data.orderId), data);
       }
@@ -91,7 +91,7 @@ export const useApplyDiscount = () => {
       errorMessage: "Failed to apply discount",
       onSuccess: (data) => {
         // Update bill in cache
-        queryClient.setQueryData(billQueryKeys.detail(data.id), data);
+        queryClient.setQueryData(billQueryKeys.detail(data.orderId), data);
         if (data.orderId) {
           queryClient.setQueryData(billQueryKeys.byOrder(data.orderId), data);
         }
@@ -114,7 +114,7 @@ export const useProcessPayment = () => {
     errorMessage: "Failed to process payment",
     onSuccess: (data) => {
       // Update bill in cache
-      queryClient.setQueryData(billQueryKeys.detail(data.id), data);
+      queryClient.setQueryData(billQueryKeys.detail(data.orderId), data);
       if (data.orderId) {
         queryClient.setQueryData(billQueryKeys.byOrder(data.orderId), data);
       }

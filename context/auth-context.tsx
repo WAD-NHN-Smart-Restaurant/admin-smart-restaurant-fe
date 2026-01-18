@@ -144,7 +144,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         queryKey: AUTH_QUERY_KEYS.profile,
       });
 
-      // Redirect to dashboard
       router.refresh();
       if (data.data.user.role === "admin") {
         router.push(PATHS.TABLES.INDEX);
