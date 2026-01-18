@@ -87,10 +87,14 @@ export function BillCard({
       </div>
 
       {/* Bill Totals */}
-      <div className="space-y-1 mb-4">
-        <div className="flex items-center justify-between text-base font-bold">
+      <div className="space-y-1">
+        <div className="flex items-center justify-between text-base font-bold mb-2">
           <span className="text-gray-900">Total</span>
           <span className="text-gray-900">${bill.totalAmount.toFixed(2)}</span>
+        </div>
+        <div className="flex items-center justify-between text-base">
+          <span className="text-gray-900">Payment Method</span>
+          <span className="text-gray-900">{bill.paymentMethod}</span>
         </div>
       </div>
 

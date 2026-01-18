@@ -29,6 +29,7 @@ export interface Payment {
 // Bill interface (matches API response from getBillsByRestaurant)
 export interface Bill {
   orderId: string;
+  paymentId?: string;
   tableNumber: string;
   totalAmount: number;
   status: string;
@@ -60,7 +61,20 @@ export interface BillDetails {
     tax: number;
     total: number;
     status: string;
-    payments: Payment[];
+    payments: Array<{
+      id: string;
+      amount: number;
+      status: string;
+      currency: string | null;
+      metadata: Record<string, unknown> | null;
+      orderId: string;
+      createdAt: string;
+      updatedAt: string;
+      qrCodeUrl: string | null;
+      checkoutUrl: string | null;
+      paymentMethod: string | null;
+      providerOrderCode: string | null;
+    }>;
     createdAt: string;
     updatedAt: string;
   };

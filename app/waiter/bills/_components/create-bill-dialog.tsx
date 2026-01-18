@@ -20,11 +20,16 @@ import {
 import { useState, useCallback, useMemo } from "react";
 import { useGetWaiterOrders } from "@/hooks/use-waiter-query";
 import { OrderStatus } from "@/types/waiter-type";
+import { PaymentMethod, PAYMENT_METHOD_OPTIONS } from "@/schema/bill-schema";
 
 interface CreateBillDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (orderId: string, tableId: string) => void;
+  onConfirm: (
+    orderId: string,
+    tableId: string,
+    paymentMethod: PaymentMethod,
+  ) => void;
   isProcessing?: boolean;
 }
 
@@ -35,6 +40,9 @@ export function CreateBillDialog({
   isProcessing = false,
 }: CreateBillDialogProps) {
   const [selectedOrderId, setSelectedOrderId] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
+    PaymentMethod.CASH,
+  );
 
   // Get active orders (payment_pending status)
   const { data: ordersData } = useGetWaiterOrders({
@@ -46,9 +54,9 @@ export function CreateBillDialog({
   const handleConfirm = useCallback(() => {
     const order = orders.find((o) => o.id === selectedOrderId);
     if (order) {
-      onConfirm(order.id, order.tableId);
+      onConfirm(order.id, order.tableId, paymentMethod);
     }
-  }, [selectedOrderId, orders, onConfirm]);
+  }, [selectedOrderId, orders, paymentMethod, onConfirm]);
 
   const selectedOrder = useMemo(
     () => orders.find((o) => o.id === selectedOrderId),
@@ -61,7 +69,7 @@ export function CreateBillDialog({
         <DialogHeader>
           <DialogTitle>Create Bill</DialogTitle>
           <DialogDescription>
-            Select an order to create a bill for payment
+            Select an order and payment method to create a bill
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -87,6 +95,28 @@ export function CreateBillDialog({
                     </SelectItem>
                   ))
                 )}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="paymentMethod" className="mb-2 block">
+              Payment Method
+            </Label>
+            <Select
+              value={paymentMethod}
+              onValueChange={(value) =>
+                setPaymentMethod(value as PaymentMethod)
+              }
+            >
+              <SelectTrigger id="paymentMethod">
+                <SelectValue placeholder="Select payment method" />
+              </SelectTrigger>
+              <SelectContent>
+                {PAYMENT_METHOD_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

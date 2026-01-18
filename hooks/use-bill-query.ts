@@ -7,6 +7,7 @@ import {
   getBills,
   getBillById,
   getBillByOrderId,
+  getBillByPaymentId,
   createBill,
   applyDiscount,
   processPayment,
@@ -29,6 +30,8 @@ export const billQueryKeys = {
   detail: (id: string) => [...billQueryKeys.all, "detail", id] as const,
   byOrder: (orderId: string) =>
     [...billQueryKeys.all, "by-order", orderId] as const,
+  byPayment: (paymentId: string) =>
+    [...billQueryKeys.all, "by-payment", paymentId] as const,
 };
 
 // Hook to get bills with filters
@@ -61,6 +64,19 @@ export const useGetBillByOrder = (orderId: string, enabled = true) => {
   });
 };
 
+// Hook to get bill by payment ID
+export const useGetBillByPayment = (paymentId: string, enabled = true) => {
+  const queryKey = useMemo(
+    () => billQueryKeys.byPayment(paymentId),
+    [paymentId],
+  );
+
+  return useSafeQuery(queryKey, () => getBillByPaymentId(paymentId), {
+    enabled: enabled && !!paymentId,
+    errorMessage: "Failed to fetch bill for payment",
+  });
+};
+
 // Hook to create bill
 export const useCreateBill = () => {
   const queryClient = useQueryClient();
@@ -89,14 +105,9 @@ export const useApplyDiscount = () => {
     {
       successMessage: "Discount applied successfully",
       errorMessage: "Failed to apply discount",
-      onSuccess: (data) => {
-        // Update bill in cache
-        queryClient.setQueryData(billQueryKeys.detail(data.orderId), data);
-        if (data.orderId) {
-          queryClient.setQueryData(billQueryKeys.byOrder(data.orderId), data);
-        }
-        // Invalidate list to refresh
-        queryClient.invalidateQueries({ queryKey: billQueryKeys.list() });
+      onSuccess: () => {
+        // Invalidate all bill queries to refresh everything
+        queryClient.invalidateQueries({ queryKey: billQueryKeys.all });
       },
     },
   );

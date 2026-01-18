@@ -18,12 +18,7 @@ import {
   useProcessPayment,
   usePrintBill,
 } from "@/hooks/use-bill-query";
-import {
-  Bill,
-  BillFilter,
-  PaymentStatus,
-  PaymentMethod,
-} from "@/types/bill-type";
+import { Bill, BillFilter, PaymentMethod } from "@/types/bill-type";
 
 export function BillsContent() {
   const { user } = useAuth();
@@ -59,13 +54,14 @@ export function BillsContent() {
 
   const handleCreateConfirm = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    (orderId: string, tableId: string) => {
+    (orderId: string, tableId: string, paymentMethod: PaymentMethod) => {
       // Backend will calculate subtotal, tax, and total
-      // We only need to send the orderId
+      // We only need to send the orderId and paymentMethod
       // tableId is passed from dialog but not used in API call
       createMutation.mutate(
         {
           orderId,
+          paymentMethod,
         },
         {
           onSuccess: () => {

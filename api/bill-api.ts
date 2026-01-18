@@ -5,6 +5,7 @@ import {
   CreateBillRequest,
   ApplyDiscountRequest,
   ProcessPaymentRequest,
+  BillDetails,
 } from "@/types/bill-type";
 import {
   ApiResponse,
@@ -41,6 +42,16 @@ export const getBillById = async (orderId: string): Promise<Bill> => {
 // Get bill by order ID
 export const getBillByOrderId = async (orderId: string): Promise<Bill> => {
   const response = await api.get<ApiResponse<Bill>>(`/api/bills/${orderId}`);
+  return response.data.data;
+};
+
+// Get bill by payment ID
+export const getBillByPaymentId = async (
+  paymentId: string,
+): Promise<BillDetails> => {
+  const response = await api.get<ApiResponse<BillDetails>>(
+    `/api/bills/payment/${paymentId}`,
+  );
   return response.data.data;
 };
 

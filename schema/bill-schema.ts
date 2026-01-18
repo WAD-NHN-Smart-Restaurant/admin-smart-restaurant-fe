@@ -18,6 +18,7 @@ export enum PaymentStatus {
 // Schema for creating a bill
 export const createBillSchema = z.object({
   orderId: z.string().min(1, "Order ID is required"),
+  paymentMethod: z.nativeEnum(PaymentMethod),
 });
 
 // Schema for applying discount
