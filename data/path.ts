@@ -29,6 +29,9 @@ export const PROTECTED_PATHS = {
   KITCHEN: {
     INDEX: "/kitchen",
   },
+  ANALYSIS: {
+    INDEX: "/analysis",
+  },
 };
 
 export const PUBLIC_PATHS = {

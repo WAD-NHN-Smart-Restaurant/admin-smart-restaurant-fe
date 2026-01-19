@@ -27,17 +27,6 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
-    title: "Orders",
-    href: PATHS.WAITER.ORDERS,
-    icon: <ShoppingBag className="h-5 w-5" />,
-    badge: 5,
-  },
-  {
-    title: "Bills",
-    href: PATHS.WAITER.BILLS,
-    icon: <ShoppingBag className="h-5 w-5" />,
-  },
-  {
     title: "Tables",
     href: PATHS.TABLES.INDEX,
     icon: <Users className="h-5 w-5" />,
@@ -58,9 +47,9 @@ const navItems: NavItem[] = [
     icon: <Tag className="h-5 w-5" />,
   },
   {
-    title: "Kitchen",
-    href: "/kitchen",
-    icon: <ForkKnife className="h-5 w-5" />,
+    title: "Analysis",
+    href: PATHS.ANALYSIS.INDEX,
+    icon: <Grid3x3 className="h-5 w-5" />,
   },
 ];
 
