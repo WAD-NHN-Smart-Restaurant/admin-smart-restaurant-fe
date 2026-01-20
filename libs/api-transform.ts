@@ -75,3 +75,28 @@ export function toFrontendTableWithOrderStatus(data: any) {
     activeOrderCount: data.activeOrderCount,
   };
 }
+
+/**
+ * Transform backend staff member data to frontend format
+ * Converts camelCase from backend to snake_case for frontend
+ */
+export function toFrontendStaffFormat(staff: any) {
+  return {
+    id: staff.id,
+    email: staff.email,
+    name: staff.name,
+    role: staff.role,
+    phone_number: staff.phoneNumber,
+    avatar_url: staff.avatarUrl,
+    is_active: staff.isActive,
+    created_at: staff.createdAt,
+    restaurant_id: staff.restaurantId,
+  };
+}
+
+/**
+ * Transform array of backend staff members to frontend format
+ */
+export function toFrontendStaffListFormat(staffList: any[]) {
+  return staffList.map(toFrontendStaffFormat);
+}

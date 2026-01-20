@@ -2,13 +2,18 @@ export const AUTH_PATHS = {
   LOGIN: "/login",
   REGISTER: "/register",
   FORGOT_PASSWORD: "/forgot-password",
+  RESET_PASSWORD: "/reset-password",
 };
 
 export const PROTECTED_PATHS = {
+  PROFILE: "/profile",
   TABLES: {
     INDEX: "/tables",
     CREATE: "/tables/create",
     EDIT: (id: string) => `/tables/${id}/edit`,
+  },
+  STAFF: {
+    INDEX: "/staff",
   },
   MENU: {
     CATEGORIES: {
@@ -20,6 +25,16 @@ export const PROTECTED_PATHS = {
     MODIFIERS: {
       INDEX: "/menu/modifiers",
     },
+  },
+  WAITER: {
+    ORDERS: "/waiter/orders",
+    BILLS: "/waiter/bills",
+  },
+  KITCHEN: {
+    INDEX: "/kitchen",
+  },
+  ANALYSIS: {
+    INDEX: "/analysis",
   },
 };
 

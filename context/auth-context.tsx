@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useSafeQuery } from "@/hooks/use-safe-query";
 import { useSafeMutation } from "@/hooks/use-safe-mutation";
 import {
@@ -11,14 +11,18 @@ import {
   logoutApi,
   getCurrentUser,
   checkAuthStatus,
+  getProfile,
+  Profile,
 } from "@/api/auth-api";
 import { tokenManager } from "@/libs/api-request";
+import { createClient } from "@/libs/supabase/client";
 import { AUTH_PATHS, PATHS } from "@/data/path";
 import { LoginFormData, RegisterFormData, User } from "@/types/auth-type";
 
 // Auth context type
 interface AuthContextType {
   user: User | null;
+  profile: Profile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (credentials: LoginFormData) => Promise<void>;
@@ -37,6 +41,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Query keys
 const AUTH_QUERY_KEYS = {
   user: ["auth", "user"] as const,
+  profile: ["auth", "profile"] as const,
   status: ["auth", "status"] as const,
 };
 
@@ -48,24 +53,82 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const pathname = usePathname();
+  const supabase = createClient(); // Create Supabase client
 
-  // Check authentication status
+  // Public routes that don't need authentication checks
+  const publicRoutes = [
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/reset-password",
+    "/callback",
+  ];
+  const isPublicRoute = publicRoutes.some(
+    (route) => pathname === route || pathname?.startsWith(route + "/"),
+  );
+
+  // Check if we're in a token exchange flow (has auth tokens in URL)
+  const hasAuthTokenInUrl =
+    typeof window !== "undefined" &&
+    (window.location.hash.includes("access_token") ||
+      window.location.search.includes("access_token"));
+
+  // Also check if pathname is a recovery/callback route
+  const isRecoveryRoute =
+    pathname?.includes("/reset-password") || pathname?.includes("/callback");
+
+  // Skip auth checks if there's a token exchange in progress or on recovery routes
+  const shouldSkipAuthCheck =
+    isPublicRoute || hasAuthTokenInUrl || isRecoveryRoute;
+
+  // Check authentication status (skip for public routes)
   const { data: isAuthenticated = false, isLoading: isAuthLoading } =
     useSafeQuery(AUTH_QUERY_KEYS.status, checkAuthStatus, {
+      enabled: !shouldSkipAuthCheck, // Skip if token exchange in progress
       staleTime: 5 * 60 * 1000, // 5 minutes
       retry: false,
       hideErrorSnackbar: true, // Silent auth check
     });
 
-  // Get current user
+  // Redirect unauthenticated users away from protected pages
+  useEffect(() => {
+    // Extra safety: Never redirect if there's a hash in the URL (token exchange)
+    const hasHashFragment =
+      typeof window !== "undefined" && window.location.hash.length > 0;
+
+    if (
+      !shouldSkipAuthCheck &&
+      !isAuthLoading &&
+      !isAuthenticated &&
+      !hasHashFragment
+    ) {
+      console.log("User not authenticated, redirecting to login");
+      router.push(AUTH_PATHS.LOGIN);
+    }
+  }, [shouldSkipAuthCheck, isAuthLoading, isAuthenticated, router]);
+
+  // Get current user (skip for public routes)
   const { data: user = null, isLoading: isUserLoading } = useSafeQuery(
     AUTH_QUERY_KEYS.user,
     getCurrentUser,
     {
-      enabled: isAuthenticated,
+      enabled: !shouldSkipAuthCheck && isAuthenticated, // Only fetch user on non-public routes when authenticated
       staleTime: 10 * 60 * 1000, // 10 minutes
       retry: false,
       hideErrorSnackbar: true, // Silent user fetch
+    },
+  );
+
+  // Get user profile with restaurant information
+  const { data: profile = null, isLoading: isProfileLoading } = useSafeQuery(
+    AUTH_QUERY_KEYS.profile,
+    () => getProfile(user?.id || ""),
+    {
+      enabled: !shouldSkipAuthCheck && isAuthenticated && !!user?.id,
+      staleTime: 10 * 60 * 1000, // 10 minutes
+      retry: false,
+      hideErrorSnackbar: true,
     },
   );
 
@@ -73,14 +136,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const loginMutation = useSafeMutation(loginApi, {
     successMessage: "Login successful!",
     errorMessage: "Login failed. Please check your credentials.",
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       // Invalidate and refetch auth queries
       await queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.status });
       await queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user });
+      await queryClient.invalidateQueries({
+        queryKey: AUTH_QUERY_KEYS.profile,
+      });
 
       // Redirect to dashboard
+      console.log("Redirecting to dashboard after login");
       router.refresh();
-      router.push(PATHS.TABLES.INDEX);
+      if (data.data.user.role === "admin") {
+        router.push(PATHS.TABLES.INDEX);
+      } else if (data.data.user.role === "waiter") {
+        router.push(PATHS.WAITER.ORDERS);
+      } else {
+        router.push(PATHS.KITCHEN.INDEX);
+      }
     },
   });
 
@@ -92,6 +165,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Invalidate and refetch auth queries
       await queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.status });
       await queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user });
+      await queryClient.invalidateQueries({
+        queryKey: AUTH_QUERY_KEYS.profile,
+      });
 
       // Redirect to login
       router.push(AUTH_PATHS.LOGIN);
@@ -125,6 +201,77 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [queryClient]);
 
+  // Supabase auth state change listener for password recovery
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log(
+        "Supabase Auth Event:",
+        event,
+        "Session:",
+        session?.user?.email,
+        "Pathname:",
+        pathname,
+      );
+      if (event === "INITIAL_SESSION") {
+        // handle initial session
+        if (session) {
+          // User is already authenticated
+          queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.status });
+          queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user });
+          queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.profile });
+        }
+      } else if (event === "SIGNED_IN") {
+        // handle sign in event
+        console.log(
+          "SIGNED_IN event - current path:",
+          window.location.pathname,
+        );
+        queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.status });
+        queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user });
+        queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.profile });
+      } else if (event === "SIGNED_OUT") {
+        // handle sign out event
+        console.log("SIGNED_OUT event - pathname:", window.location.pathname);
+
+        // Don't redirect if we're on a recovery/callback page (token exchange in progress)
+        const currentPath = window.location.pathname;
+        const isOnRecoveryPage =
+          currentPath.includes("/reset-password") ||
+          currentPath.includes("/callback");
+        const hasHashToken = window.location.hash.includes("access_token");
+
+        if (!isOnRecoveryPage && !hasHashToken) {
+          console.log("Redirecting to login from SIGNED_OUT");
+          queryClient.clear();
+          setTimeout(() => {
+            router.push(AUTH_PATHS.LOGIN);
+          }, 4000);
+        } else {
+          console.log("Staying on page - token exchange in progress");
+        }
+      } else if (event === "PASSWORD_RECOVERY") {
+        // handle password recovery event
+        // Redirect to reset password page
+        router.push(AUTH_PATHS.RESET_PASSWORD);
+      } else if (event === "TOKEN_REFRESHED") {
+        // handle token refreshed event
+        // Token has been refreshed, update queries
+        queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.status });
+        queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user });
+        queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.profile });
+      } else if (event === "USER_UPDATED") {
+        // handle user updated event
+        queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user });
+        queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.profile });
+      }
+    });
+
+    // Cleanup function to unsubscribe
+    return () => {
+      data.subscription.unsubscribe();
+    };
+  }, [queryClient, router, supabase, pathname]);
+
   // Auth functions
   const login = async (credentials: LoginFormData) => {
     await loginMutation.mutateAsync(credentials);
@@ -140,8 +287,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const contextValue: AuthContextType = {
     user,
+    profile,
     isAuthenticated,
-    isLoading: isAuthLoading || isUserLoading,
+    isLoading: isAuthLoading || isUserLoading || isProfileLoading,
     login,
     register,
     logout,

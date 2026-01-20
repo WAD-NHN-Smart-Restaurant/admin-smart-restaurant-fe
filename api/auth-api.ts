@@ -13,6 +13,17 @@ import {
   UpdatePasswordResponse,
   CurrentUserResponse,
 } from "@/types/auth-type";
+
+export interface Profile {
+  id: string;
+  fullName: string | null;
+  phoneNumber: string | null;
+  avatarUrl: string | null;
+  role: string | null;
+  restaurantId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
 import {
   registerResponseSchema,
   confirmEmailResponseSchema,
@@ -28,6 +39,7 @@ const AUTH_API = {
   REFRESH_TOKEN: "/api/auth/refresh",
   EMAIL_CONFIRM: "/api/auth/confirm",
   ME: "/api/auth/me",
+  PROFILE: "/api/profiles",
   RESET_PASSWORD: "/api/auth/reset-password",
   UPDATE_PASSWORD: "/api/auth/update-password",
   RESEND_CONFIRMATION: "/api/auth/resend-confirmation",
@@ -99,6 +111,21 @@ export const getCurrentUser = async (): Promise<User> => {
 };
 
 /**
+ * Get user profile with restaurant information
+ */
+export const getProfile = async (userId: string): Promise<Profile> => {
+  try {
+    const response = await api.get<ApiResponse<Profile>>(
+      `${AUTH_API.PROFILE}/${userId}`,
+    );
+    return response.data.data;
+  } catch (error: unknown) {
+    console.error("Get profile error:", error);
+    throw error;
+  }
+};
+
+/**
  * Check if user is authenticated
  */
 export const checkAuthStatus = async (): Promise<boolean> => {
@@ -122,20 +149,19 @@ export const checkAuthStatus = async (): Promise<boolean> => {
 /**
  * Confirm email with OTP token
  */
-export const confirmEmailApi = async (
-  data: EmailConfirmationData,
-): Promise<ConfirmEmailResponse> => {
-  try {
-    const response = await api.post<
-      EmailConfirmationData,
-      ConfirmEmailResponse
-    >(AUTH_API.EMAIL_CONFIRM, data);
-    const result = confirmEmailResponseSchema.parse(response.data);
-    return result;
-  } catch (error: unknown) {
-    throw error;
-  }
-};
+// export const confirmEmailApi = async (
+//   data: EmailConfirmationData,
+// ): Promise<ConfirmEmailResponse> => {
+//   try {
+//     const response = await api.post<
+//       EmailConfirmationData,
+//       ConfirmEmailResponse
+//     >(AUTH_API.EMAIL_CONFIRM, data);
+//     return response.data;
+//   } catch (error: unknown) {
+//     throw error;
+//   }
+// };
 
 /**
  * Send password reset email
@@ -148,8 +174,7 @@ export const resetPasswordApi = async (
       ResetPasswordFormData,
       ResetPasswordResponse
     >(AUTH_API.RESET_PASSWORD, data);
-    const result = resetPasswordResponseSchema.parse(response.data);
-    return result;
+    return response.data;
   } catch (error: unknown) {
     throw error;
   }
@@ -166,8 +191,7 @@ export const updatePasswordApi = async (
       { newPassword: string },
       UpdatePasswordResponse
     >(AUTH_API.UPDATE_PASSWORD, { newPassword: data.newPassword });
-    const result = updatePasswordResponseSchema.parse(response.data);
-    return result;
+    return response.data;
   } catch (error: unknown) {
     throw error;
   }

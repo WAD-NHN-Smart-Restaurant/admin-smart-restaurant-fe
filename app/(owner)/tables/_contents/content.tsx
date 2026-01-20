@@ -10,6 +10,7 @@ import { TableGrid } from "../_components/table-grid";
 import { DeleteTableDialog } from "../_components/delete-table-dialog";
 import { TableQRDialog } from "../_components/table-qr-dialog";
 import { TableForm } from "../_components/table-form";
+import { BulkWaiterAssignDialog } from "../_components/bulk-waiter-assign-dialog";
 import {
   Dialog,
   DialogContent,
@@ -34,12 +35,37 @@ export function TablesContent() {
   const [editingTable, setEditingTable] = useState<Table | null>(null);
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
+  const [bulkAssignDialogOpen, setBulkAssignDialogOpen] = useState(false);
 
   // Queries and mutations
-  const { tablesQuery, deleteMutation, statusMutation, generateQRMutation } =
-    useTableQuery(filters);
+  const {
+    tablesQuery,
+    deleteMutation,
+    statusMutation,
+    generateQRMutation,
+    assignWaiterMutation,
+    bulkAssignWaiterMutation,
+  } = useTableQuery(filters);
 
   const { data: tables = [], isLoading, error } = tablesQuery;
+
+  const handleAssignWaiter = (tableId: string, waiterId: string | null) => {
+    assignWaiterMutation.mutate({ tableId, waiterId });
+  };
+
+  const handleBulkAssignWaiter = (
+    tableIds: string[],
+    waiterId: string | null,
+  ) => {
+    bulkAssignWaiterMutation.mutate(
+      { tableIds, waiterId },
+      {
+        onSuccess: () => {
+          setBulkAssignDialogOpen(false);
+        },
+      },
+    );
+  };
 
   // Filter tables by search query
   const filteredTables = tables.filter((table) => {
@@ -131,11 +157,12 @@ export function TablesContent() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
+      <div className="space-y-6 p-4">
         {/* Header */}
         <TableHeader
           onCreateClick={handleCreateClick}
           onDownloadAll={handleDownloadAllQR}
+          onBulkAssignClick={() => setBulkAssignDialogOpen(true)}
         />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -158,6 +185,7 @@ export function TablesContent() {
             onDownloadQR={handleDownloadQR}
             onViewQR={handleQRClick}
             onDelete={handleDeleteClick}
+            onAssignWaiter={handleAssignWaiter}
             isGeneratingQR={generateQRMutation.isPending}
           />
         </div>
@@ -205,6 +233,15 @@ export function TablesContent() {
             }
           />
         )}
+
+        {/* Bulk Waiter Assign Dialog */}
+        <BulkWaiterAssignDialog
+          open={bulkAssignDialogOpen}
+          onOpenChange={setBulkAssignDialogOpen}
+          tables={tables}
+          onBulkAssign={handleBulkAssignWaiter}
+          isAssigning={bulkAssignWaiterMutation.isPending}
+        />
       </div>
     </ProtectedRoute>
   );
