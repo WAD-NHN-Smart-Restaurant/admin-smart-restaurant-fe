@@ -30,12 +30,18 @@ export interface Payment {
 export interface Bill {
   orderId: string;
   paymentId?: string;
+  tableId?: string;
   tableNumber: string;
   totalAmount: number;
+  tax?: number;
+  discountAmount?: number;
+  finalTotal?: number;
   status: string;
   itemCount: number;
-  paymentStatus?: string;
-  paymentMethod?: string;
+  paymentStatus?: PaymentStatus;
+  discountRate?: number | null;
+  paymentMethod?: string | null;
+  metadata?: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;
 }

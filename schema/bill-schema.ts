@@ -3,13 +3,12 @@ import { z } from "zod";
 // Enums for payment
 export enum PaymentMethod {
   CASH = "cash",
-  ZALOPAY = "zalopay",
-  MOMO = "momo",
-  VNPAY = "vnpay",
   STRIPE = "stripe",
 }
 
 export enum PaymentStatus {
+  CREATED = "created",
+  ACCEPTED = "accepted",
   PENDING = "pending",
   SUCCESS = "success",
   FAILED = "failed",
@@ -48,13 +47,12 @@ export const billFilterSchema = z.object({
 // Payment method options
 export const PAYMENT_METHOD_OPTIONS = [
   { value: PaymentMethod.CASH, label: "Cash" },
-  { value: PaymentMethod.ZALOPAY, label: "ZaloPay" },
-  { value: PaymentMethod.MOMO, label: "MoMo" },
-  { value: PaymentMethod.VNPAY, label: "VNPay" },
   { value: PaymentMethod.STRIPE, label: "Stripe" },
 ] as const;
 
 export const PAYMENT_STATUS_OPTIONS = [
+  { value: PaymentStatus.CREATED, label: "Created" },
+  { value: PaymentStatus.ACCEPTED, label: "Accepted" },
   { value: PaymentStatus.PENDING, label: "Pending" },
   { value: PaymentStatus.SUCCESS, label: "Success" },
   { value: PaymentStatus.FAILED, label: "Failed" },

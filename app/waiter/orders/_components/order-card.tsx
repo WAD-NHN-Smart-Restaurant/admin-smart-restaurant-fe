@@ -100,7 +100,7 @@ export function OrderCard({
       <div className="p-4 flex justify-between items-center border-b border-slate-100">
         <div className="flex items-center gap-3">
           <div className="bg-orange-500 text-white px-3 py-2 rounded-lg font-bold">
-            T{order.table?.tableNumber || "?"}
+            {order.table?.tableNumber || "?"}
           </div>
           <div>
             <div className="font-bold text-slate-900">

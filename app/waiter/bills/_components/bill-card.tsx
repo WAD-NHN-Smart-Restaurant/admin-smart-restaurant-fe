@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Bill, PaymentStatus } from "@/types/bill-type";
-import { Clock, Download, DollarSign, CreditCard } from "lucide-react";
+import { Clock, Download, CreditCard } from "lucide-react";
 import { format } from "date-fns";
 import { useCallback, useMemo } from "react";
 
@@ -12,8 +12,7 @@ interface BillCardProps {
   bill: Bill;
   onViewDetails: (bill: Bill) => void;
   onPrint: (billId: string) => void;
-  onProcessPayment: (bill: Bill) => void;
-  onApplyDiscount: (bill: Bill) => void;
+  onConfirmPayment: (bill: Bill) => void;
   isProcessing?: boolean;
 }
 
@@ -21,8 +20,7 @@ export function BillCard({
   bill,
   onViewDetails,
   onPrint,
-  onProcessPayment,
-  onApplyDiscount,
+  onConfirmPayment,
   isProcessing = false,
 }: BillCardProps) {
   // Get payment status from bill.paymentStatus or bill.status
@@ -110,28 +108,17 @@ export function BillCard({
           <Download className="h-3 w-3 mr-2" />
           Print
         </Button>
-        {!isPaid && (
-          <>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onApplyDiscount(bill)}
-              disabled={isProcessing}
-            >
-              <DollarSign className="h-3 w-3 mr-2" />
-              Discount
-            </Button>
-            <Button
-              size="sm"
-              variant="default"
-              className="flex-1"
-              onClick={() => onProcessPayment(bill)}
-              disabled={isProcessing}
-            >
-              <CreditCard className="h-3 w-3 mr-2" />
-              Pay
-            </Button>
-          </>
+        {!isPaid && bill.paymentMethod === "cash" && (
+          <Button
+            size="sm"
+            variant="default"
+            className="flex-1"
+            onClick={() => onConfirmPayment(bill)}
+            disabled={isProcessing}
+          >
+            <CreditCard className="h-3 w-3 mr-2" />
+            Confirm Payment
+          </Button>
         )}
       </div>
     </Card>

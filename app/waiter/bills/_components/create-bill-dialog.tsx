@@ -17,20 +17,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { useState, useCallback, useMemo } from "react";
-import { useGetWaiterOrders } from "@/hooks/use-waiter-query";
-import { OrderStatus } from "@/types/waiter-type";
-import { PaymentMethod, PAYMENT_METHOD_OPTIONS } from "@/schema/bill-schema";
+// import { PaymentStatus } from "@/types/bill-type";
 
 interface CreateBillDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: (
-    orderId: string,
-    tableId: string,
-    paymentMethod: PaymentMethod,
+    paymentId: string,
+    discountRate: number,
+    discountAmount: number,
   ) => void;
   isProcessing?: boolean;
+  // Accept list of pending payment requests (from getBills filtered by status='created')
+  pendingPayments: Array<{
+    paymentId: string;
+    orderId: string;
+    tableNumber: string;
+    totalAmount: number;
+    tax?: number;
+    discountAmount?: number;
+    finalTotal?: number;
+  }>;
 }
 
 export function CreateBillDialog({
@@ -38,30 +47,42 @@ export function CreateBillDialog({
   onOpenChange,
   onConfirm,
   isProcessing = false,
+  pendingPayments = [],
 }: CreateBillDialogProps) {
-  const [selectedOrderId, setSelectedOrderId] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
-    PaymentMethod.CASH,
+  const [selectedPaymentId, setSelectedPaymentId] = useState("");
+  const [discountRate, setDiscountRate] = useState<string>("");
+
+  const selectedPayment = useMemo(
+    () => pendingPayments.find((p) => p.paymentId === selectedPaymentId),
+    [pendingPayments, selectedPaymentId],
   );
 
-  // Get active orders (payment_pending status)
-  const { data: ordersData } = useGetWaiterOrders({
-    status: OrderStatus.PAYMENT_PENDING,
-  });
-
-  const orders = useMemo(() => ordersData?.items || [], [ordersData]);
+  const discountValue = useMemo(() => {
+    if (!selectedPayment) return 0;
+    const rate = parseFloat(discountRate) || 0;
+    return (selectedPayment.totalAmount * rate) / 100;
+  }, [selectedPayment, discountRate]);
 
   const handleConfirm = useCallback(() => {
-    const order = orders.find((o) => o.id === selectedOrderId);
-    if (order) {
-      onConfirm(order.id, order.tableId, paymentMethod);
+    const rate = parseFloat(discountRate) || 0;
+    if (selectedPaymentId && rate >= 0 && rate <= 100) {
+      onConfirm(selectedPaymentId, rate, discountValue);
+      // Reset after confirm
+      setSelectedPaymentId("");
+      setDiscountRate("");
     }
-  }, [selectedOrderId, orders, paymentMethod, onConfirm]);
+  }, [selectedPaymentId, discountRate, discountValue, onConfirm]);
 
-  const selectedOrder = useMemo(
-    () => orders.find((o) => o.id === selectedOrderId),
-    [orders, selectedOrderId],
-  );
+  const subtotalAfterDiscount = useMemo(() => {
+    if (!selectedPayment) return 0;
+    return Math.max(0, selectedPayment.totalAmount - discountValue);
+  }, [selectedPayment, discountValue]);
+
+  const finalTotal = useMemo(() => {
+    if (!selectedPayment) return 0;
+    // Final total = (original - discount) + tax
+    return (selectedPayment.totalAmount - discountValue) * 1.1;
+  }, [selectedPayment, discountValue]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -69,29 +90,34 @@ export function CreateBillDialog({
         <DialogHeader>
           <DialogTitle>Create Bill</DialogTitle>
           <DialogDescription>
-            Select an order and payment method to create a bill
+            Select a payment request and apply discount to create bill
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div>
-            <Label htmlFor="order" className="mb-2 block">
+            <Label htmlFor="payment" className="mb-2 block">
               Select Order
             </Label>
-            <Select value={selectedOrderId} onValueChange={setSelectedOrderId}>
-              <SelectTrigger id="order">
-                <SelectValue placeholder="Select an order" />
+            <Select
+              value={selectedPaymentId}
+              onValueChange={setSelectedPaymentId}
+            >
+              <SelectTrigger id="payment">
+                <SelectValue placeholder="Select a payment request" />
               </SelectTrigger>
               <SelectContent>
-                {orders.length === 0 ? (
+                {pendingPayments.length === 0 ? (
                   <div className="p-2 text-sm text-gray-500 text-center">
-                    No orders available for billing
+                    No pending bill requests
                   </div>
                 ) : (
-                  orders.map((order) => (
-                    <SelectItem key={order.id} value={order.id}>
-                      Table {order.table.tableNumber} - $
-                      {order.totalAmount.toFixed(2)} ({order.orderItems.length}{" "}
-                      items)
+                  pendingPayments.map((payment) => (
+                    <SelectItem
+                      key={payment.paymentId}
+                      value={payment.paymentId}
+                    >
+                      Table {payment.tableNumber} - $
+                      {payment.totalAmount.toFixed(2)}
                     </SelectItem>
                   ))
                 )}
@@ -99,53 +125,57 @@ export function CreateBillDialog({
             </Select>
           </div>
           <div>
-            <Label htmlFor="paymentMethod" className="mb-2 block">
-              Payment Method
+            <Label htmlFor="discountRate" className="mb-2 block">
+              Discount (%)
             </Label>
-            <Select
-              value={paymentMethod}
-              onValueChange={(value) =>
-                setPaymentMethod(value as PaymentMethod)
-              }
-            >
-              <SelectTrigger id="paymentMethod">
-                <SelectValue placeholder="Select payment method" />
-              </SelectTrigger>
-              <SelectContent>
-                {PAYMENT_METHOD_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Input
+              id="discountRate"
+              type="number"
+              placeholder="0"
+              value={discountRate}
+              onChange={(e) => setDiscountRate(e.target.value)}
+              min="0"
+              max="100"
+              step="1"
+            />
           </div>
-          {selectedOrder && (
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-medium text-gray-900 mb-2">Order Summary</h4>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Table</span>
-                  <span className="text-gray-900">
-                    {selectedOrder.table.tableNumber}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Items</span>
-                  <span className="text-gray-900">
-                    {selectedOrder.orderItems.length}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Status</span>
-                  <span className="text-gray-900">{selectedOrder.status}</span>
-                </div>
-                <div className="flex justify-between text-base font-bold border-t pt-2 mt-2">
-                  <span className="text-gray-900">Total</span>
-                  <span className="text-gray-900">
-                    ${selectedOrder.totalAmount.toFixed(2)}
-                  </span>
-                </div>
+          {selectedPayment && discountRate && (
+            <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Table</span>
+                <span className="text-gray-900">
+                  {selectedPayment.tableNumber}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Original Total</span>
+                <span className="text-gray-900">
+                  ${selectedPayment.totalAmount.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-green-600">
+                  Discount ({discountRate}%)
+                </span>
+                <span className="text-green-600">
+                  -${discountValue.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Subtotal After Discount</span>
+                <span className="text-gray-900">
+                  ${subtotalAfterDiscount.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Tax (10%)</span>
+                <span className="text-gray-900">
+                  ${(subtotalAfterDiscount * 0.1).toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between text-base font-bold border-t pt-2 mt-2">
+                <span className="text-gray-900">Final Total</span>
+                <span className="text-gray-900">${finalTotal.toFixed(2)}</span>
               </div>
             </div>
           )}
@@ -160,7 +190,13 @@ export function CreateBillDialog({
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={!selectedOrderId || isProcessing}
+            disabled={
+              !selectedPaymentId ||
+              !discountRate ||
+              parseFloat(discountRate) < 0 ||
+              parseFloat(discountRate) > 100 ||
+              isProcessing
+            }
           >
             {isProcessing ? "Creating..." : "Create Bill"}
           </Button>
