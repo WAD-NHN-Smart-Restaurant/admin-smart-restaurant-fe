@@ -107,7 +107,7 @@ export function GuestMenuPreviewContent() {
 
           {!isLoading && !isError && categories.length > 0 && (
             <div className="space-y-8">
-              {categories.map((category: GuestCategory) => (
+              {categories?.map((category: GuestCategory) => (
                 <CategorySection
                   key={category.id}
                   category={category}

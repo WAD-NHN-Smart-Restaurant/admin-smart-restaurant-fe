@@ -11,6 +11,8 @@ import {
   logoutApi,
   getCurrentUser,
   checkAuthStatus,
+  getProfile,
+  Profile,
 } from "@/api/auth-api";
 import { tokenManager } from "@/libs/api-request";
 import { createClient } from "@/libs/supabase/client";
@@ -20,6 +22,7 @@ import { LoginFormData, RegisterFormData, User } from "@/types/auth-type";
 // Auth context type
 interface AuthContextType {
   user: User | null;
+  profile: Profile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (credentials: LoginFormData) => Promise<void>;
@@ -38,6 +41,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Query keys
 const AUTH_QUERY_KEYS = {
   user: ["auth", "user"] as const,
+  profile: ["auth", "profile"] as const,
   status: ["auth", "status"] as const,
 };
 
@@ -51,8 +55,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const queryClient = useQueryClient();
   const pathname = usePathname();
   const supabase = createClient(); // Create Supabase client
-
-  console.log("AuthProvider mounting, pathname:", pathname);
 
   // Public routes that don't need authentication checks
   const publicRoutes = [
@@ -79,14 +81,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Skip auth checks if there's a token exchange in progress or on recovery routes
   const shouldSkipAuthCheck =
     isPublicRoute || hasAuthTokenInUrl || isRecoveryRoute;
-
-  console.log("Auth Context Debug:", {
-    pathname,
-    isPublicRoute,
-    hasAuthTokenInUrl,
-    isRecoveryRoute,
-    shouldSkipAuthCheck,
-  });
 
   // Check authentication status (skip for public routes)
   const { data: isAuthenticated = false, isLoading: isAuthLoading } =
@@ -126,19 +120,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     },
   );
 
+  // Get user profile with restaurant information
+  const { data: profile = null, isLoading: isProfileLoading } = useSafeQuery(
+    AUTH_QUERY_KEYS.profile,
+    () => getProfile(user?.id || ""),
+    {
+      enabled: !shouldSkipAuthCheck && isAuthenticated && !!user?.id,
+      staleTime: 10 * 60 * 1000, // 10 minutes
+      retry: false,
+      hideErrorSnackbar: true,
+    },
+  );
+
   // Login mutation
   const loginMutation = useSafeMutation(loginApi, {
     successMessage: "Login successful!",
     errorMessage: "Login failed. Please check your credentials.",
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       // Invalidate and refetch auth queries
       await queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.status });
       await queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user });
+      await queryClient.invalidateQueries({
+        queryKey: AUTH_QUERY_KEYS.profile,
+      });
 
       // Redirect to dashboard
       console.log("Redirecting to dashboard after login");
       router.refresh();
-      router.push(PATHS.TABLES.INDEX);
+      if (data.data.user.role === "admin") {
+        router.push(PATHS.TABLES.INDEX);
+      } else if (data.data.user.role === "waiter") {
+        router.push(PATHS.WAITER.ORDERS);
+      } else {
+        router.push(PATHS.KITCHEN.INDEX);
+      }
     },
   });
 
@@ -150,6 +165,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Invalidate and refetch auth queries
       await queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.status });
       await queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user });
+      await queryClient.invalidateQueries({
+        queryKey: AUTH_QUERY_KEYS.profile,
+      });
 
       // Redirect to login
       router.push(AUTH_PATHS.LOGIN);
@@ -200,6 +218,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // User is already authenticated
           queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.status });
           queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user });
+          queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.profile });
         }
       } else if (event === "SIGNED_IN") {
         // handle sign in event
@@ -209,6 +228,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         );
         queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.status });
         queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user });
+        queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.profile });
       } else if (event === "SIGNED_OUT") {
         // handle sign out event
         console.log("SIGNED_OUT event - pathname:", window.location.pathname);
@@ -238,9 +258,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Token has been refreshed, update queries
         queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.status });
         queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user });
+        queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.profile });
       } else if (event === "USER_UPDATED") {
         // handle user updated event
         queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user });
+        queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.profile });
       }
     });
 
@@ -265,8 +287,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const contextValue: AuthContextType = {
     user,
+    profile,
     isAuthenticated,
-    isLoading: isAuthLoading || isUserLoading,
+    isLoading: isAuthLoading || isUserLoading || isProfileLoading,
     login,
     register,
     logout,

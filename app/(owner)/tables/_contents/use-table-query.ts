@@ -10,6 +10,9 @@ import {
   deleteTable,
   updateTableStatus,
   generateQRCode,
+  assignWaiterToTable,
+  bulkAssignWaiterToTables,
+  getUsersByRole,
 } from "@/api/table-api";
 import {
   TableFilter,
@@ -89,6 +92,32 @@ export function useTableQuery(filters: TableFilter) {
     },
   );
 
+  // Assign waiter mutation
+  const assignWaiterMutation = useSafeMutation(
+    ({ tableId, waiterId }: { tableId: string; waiterId: string | null }) =>
+      assignWaiterToTable(tableId, waiterId),
+    {
+      successMessage: "Waiter assigned successfully",
+      errorMessage: "Failed to assign waiter",
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["tables"] });
+      },
+    },
+  );
+
+  // Bulk assign waiter mutation
+  const bulkAssignWaiterMutation = useSafeMutation(
+    ({ tableIds, waiterId }: { tableIds: string[]; waiterId: string | null }) =>
+      bulkAssignWaiterToTables(tableIds, waiterId),
+    {
+      successMessage: "Waiter assigned to tables successfully",
+      errorMessage: "Failed to assign waiter to tables",
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["tables"] });
+      },
+    },
+  );
+
   return {
     tablesQuery,
     createMutation,
@@ -96,5 +125,19 @@ export function useTableQuery(filters: TableFilter) {
     deleteMutation,
     statusMutation,
     generateQRMutation,
+    assignWaiterMutation,
+    bulkAssignWaiterMutation,
   };
+}
+
+// Query hook for getting users by role
+export function useWaitersByRestaurant(restaurantId?: string | null) {
+  return useSafeQuery(
+    ["users", "role", "waiter", restaurantId],
+    () => getUsersByRole(restaurantId!, "waiter"),
+    {
+      enabled: !!restaurantId,
+      errorMessage: "Failed to load waiters",
+    },
+  );
 }

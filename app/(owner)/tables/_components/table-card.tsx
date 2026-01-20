@@ -23,8 +23,11 @@ import {
   Users,
   XCircle,
   Circle,
+  UserCheck,
 } from "lucide-react";
 import { Table, TableStatus } from "@/types/table-type";
+import { useState } from "react";
+import { WaiterAssignDialog } from "./waiter-assign-dialog";
 
 interface TableCardProps {
   table: Table;
@@ -34,6 +37,7 @@ interface TableCardProps {
   onDownloadQR: (table: Table, format: "png" | "pdf") => void;
   onViewQR: (table: Table) => void;
   onDelete: (table: Table) => void;
+  onAssignWaiter: (tableId: string, waiterId: string | null) => void;
   isGeneratingQR: boolean;
 }
 
@@ -45,8 +49,10 @@ export function TableCard({
   onDownloadQR,
   onViewQR,
   onDelete,
+  onAssignWaiter,
   isGeneratingQR,
 }: TableCardProps) {
+  const [waiterDialogOpen, setWaiterDialogOpen] = useState(false);
   const getStatusStyles = () => {
     if (table.status === "available") {
       return "border-green-400 bg-green-50/30";
@@ -107,6 +113,11 @@ export function TableCard({
               <DropdownMenuItem onClick={() => onEdit(table)}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={() => setWaiterDialogOpen(true)}>
+                <UserCheck className="mr-2 h-4 w-4" />
+                Assign Waiter
               </DropdownMenuItem>
 
               {/* Status submenu */}
@@ -215,6 +226,16 @@ export function TableCard({
           )}
         </div>
       </CardContent>
+
+      {/* Waiter Assignment Dialog */}
+      <WaiterAssignDialog
+        open={waiterDialogOpen}
+        onOpenChange={setWaiterDialogOpen}
+        tableId={table.id}
+        tableNumber={table.tableNumber}
+        currentWaiterId={table.assignedWaiterId}
+        onAssign={(waiterId) => onAssignWaiter(table.id, waiterId)}
+      />
     </Card>
   );
 }

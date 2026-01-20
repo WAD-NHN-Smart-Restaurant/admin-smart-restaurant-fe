@@ -64,7 +64,11 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response && error.response.status === UNAUTHORIZED_STATUS) {
+    if (
+      error.response &&
+      error.response.status === UNAUTHORIZED_STATUS &&
+      window.location.pathname !== "/login"
+    ) {
       window.location.href = `${window.origin}/login`;
     }
 

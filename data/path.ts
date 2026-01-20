@@ -26,6 +26,16 @@ export const PROTECTED_PATHS = {
       INDEX: "/menu/modifiers",
     },
   },
+  WAITER: {
+    ORDERS: "/waiter/orders",
+    BILLS: "/waiter/bills",
+  },
+  KITCHEN: {
+    INDEX: "/kitchen",
+  },
+  ANALYSIS: {
+    INDEX: "/analysis",
+  },
 };
 
 export const PUBLIC_PATHS = {
