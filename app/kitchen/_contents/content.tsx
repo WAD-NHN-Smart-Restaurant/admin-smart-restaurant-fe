@@ -40,6 +40,8 @@ import { KitchenOrder } from "@/types/kitchen-type";
 import { EmptyState } from "@/components/empty-state";
 import { PageLoadingSkeleton } from "@/components/page-loading-skeleton";
 
+type KitchenStatus = "accepted" | "preparing" | "ready";
+
 function LiveClock() {
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -224,19 +226,23 @@ export function KitchenContent() {
           lastHyphenIndex !== -1
             ? activeIdStr.substring(0, lastHyphenIndex)
             : activeIdStr;
-        const sourceColumnId = (
-          lastHyphenIndex !== -1
+        const sourceColumnId: KitchenStatus =
+          (lastHyphenIndex !== -1
             ? activeIdStr.substring(lastHyphenIndex + 1)
-            : ""
-        ) as "accepted" | "preparing" | "ready";
+            : "") as KitchenStatus;
 
-        let newStatus: "accepted" | "preparing" | "ready" | null = null;
+        let newStatus: KitchenStatus | null = null;
 
         // Check if over.id is a status string or an order UUID
-        const validStatuses = ["accepted", "preparing", "ready"];
-        if (validStatuses.includes(over.id as string)) {
+        const validStatuses: KitchenStatus[] = [
+          "accepted",
+          "preparing",
+          "ready",
+        ];
+        const overIdStr = over.id as string;
+        if (validStatuses.includes(overIdStr as KitchenStatus)) {
           // Dropped on column
-          newStatus = over.id as "accepted" | "preparing" | "ready";
+          newStatus = overIdStr as KitchenStatus;
         } else {
           // Dropped on an order card - parse the target order ID and find its status
           const overIdStr = over.id as string;
@@ -250,8 +256,11 @@ export function KitchenContent() {
               ? overIdStr.substring(lastHyphenIndexTarget + 1)
               : "";
 
-          if (targetColumnId && validStatuses.includes(targetColumnId)) {
-            newStatus = targetColumnId as "accepted" | "preparing" | "ready";
+          if (
+            targetColumnId &&
+            validStatuses.includes(targetColumnId as KitchenStatus)
+          ) {
+            newStatus = targetColumnId as KitchenStatus;
           }
         }
         if (newStatus === sourceColumnId) {
@@ -260,6 +269,20 @@ export function KitchenContent() {
           return;
         }
         if (newStatus && orderId) {
+          // Find order in the specific source column based on sourceColumnId
+          const sourceArray: KitchenOrder[] = (() => {
+            switch (sourceColumnId) {
+              case "accepted":
+                return ordersByStatus.received;
+              case "preparing":
+                return ordersByStatus.preparing;
+              case "ready":
+                return ordersByStatus.ready;
+              default:
+                return orders; // fallback to combined orders
+            }
+          })();
+
           // Validate status transition sequence: accepted -> preparing -> ready
           const isValidTransition =
             (sourceColumnId === "accepted" && newStatus === "preparing") ||
@@ -272,22 +295,6 @@ export function KitchenContent() {
             setActiveId(null);
             setOverId(null);
             return;
-          }
-
-          // Find order in the specific source column based on sourceColumnId
-          let sourceArray: KitchenOrder[] = [];
-          switch (sourceColumnId) {
-            case "accepted":
-              sourceArray = ordersByStatus.received;
-              break;
-            case "preparing":
-              sourceArray = ordersByStatus.preparing;
-              break;
-            case "ready":
-              sourceArray = ordersByStatus.ready;
-              break;
-            default:
-              sourceArray = orders; // fallback to combined orders
           }
 
           const order = sourceArray.find((o) => o.id === orderId);

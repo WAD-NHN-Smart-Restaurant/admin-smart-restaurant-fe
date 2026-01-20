@@ -6,19 +6,16 @@ import { useAuth } from "@/context/auth-context";
 import { BillsHeader } from "../_components/bills-header";
 import { BillCard } from "../_components/bill-card";
 import { CreateBillDialog } from "../_components/create-bill-dialog";
-import { ApplyDiscountDialog } from "../_components/apply-discount-dialog";
-import { ProcessPaymentDialog } from "../_components/process-payment-dialog";
 import { BillDetailsDialog } from "../_components/bill-details-dialog";
 import { EmptyState } from "@/components/empty-state";
 import { PageLoadingSkeleton } from "@/components/page-loading-skeleton";
 import {
   useGetBills,
-  useCreateBill,
-  useApplyDiscount,
-  useProcessPayment,
+  useAcceptPayment,
+  useConfirmPayment,
   usePrintBill,
 } from "@/hooks/use-bill-query";
-import { Bill, BillFilter, PaymentMethod } from "@/types/bill-type";
+import { Bill, BillFilter, PaymentStatus } from "@/types/bill-type";
 
 export function BillsContent() {
   const { user } = useAuth();
@@ -26,12 +23,10 @@ export function BillsContent() {
   // State
   const [filters] = useState<BillFilter>({
     page: 1,
-    limit: 10,
+    limit: 50,
     waiterId: user?.id, // Filter by current waiter
   });
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [discountDialogOpen, setDiscountDialogOpen] = useState(false);
-  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
 
@@ -39,13 +34,29 @@ export function BillsContent() {
   const { data: billsData, isLoading: billsLoading } = useGetBills(filters);
 
   // Mutations
-  const createMutation = useCreateBill();
-  const discountMutation = useApplyDiscount();
-  const paymentMutation = useProcessPayment();
+  const acceptPaymentMutation = useAcceptPayment();
+  const confirmPaymentMutation = useConfirmPayment();
   const printMutation = usePrintBill();
 
   // Get bills from data
   const bills = useMemo(() => billsData?.items || [], [billsData]);
+
+  // Get pending payment requests (status='created')
+  const pendingPayments = useMemo(
+    () =>
+      bills
+        .filter((bill) => bill.paymentStatus === PaymentStatus.CREATED)
+        .map((bill) => ({
+          paymentId: bill.paymentId || "",
+          orderId: bill.orderId,
+          tableNumber: bill.tableNumber,
+          totalAmount: bill.totalAmount,
+          tax: bill.tax || 0,
+          discountAmount: bill.discountAmount || 0,
+          finalTotal: bill.finalTotal || bill.totalAmount,
+        })),
+    [bills],
+  );
 
   // Handlers
   const handleCreateBill = useCallback(() => {
@@ -53,16 +64,9 @@ export function BillsContent() {
   }, []);
 
   const handleCreateConfirm = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    (orderId: string, tableId: string, paymentMethod: PaymentMethod) => {
-      // Backend will calculate subtotal, tax, and total
-      // We only need to send the orderId and paymentMethod
-      // tableId is passed from dialog but not used in API call
-      createMutation.mutate(
-        {
-          orderId,
-          paymentMethod,
-        },
+    (paymentId: string, discountRate: number, discountAmount: number) => {
+      acceptPaymentMutation.mutate(
+        { paymentId, discountRate, discountAmount },
         {
           onSuccess: () => {
             setCreateDialogOpen(false);
@@ -70,7 +74,7 @@ export function BillsContent() {
         },
       );
     },
-    [createMutation],
+    [acceptPaymentMutation],
   );
 
   const handleViewDetails = useCallback((bill: Bill) => {
@@ -85,65 +89,18 @@ export function BillsContent() {
     [printMutation],
   );
 
-  const handleApplyDiscount = useCallback((bill: Bill) => {
-    setSelectedBill(bill);
-    setDiscountDialogOpen(true);
-  }, []);
-
-  const handleDiscountConfirm = useCallback(
-    (discountType: "percentage" | "fixed", discountValue: number) => {
-      if (selectedBill && selectedBill.orderId) {
-        discountMutation.mutate(
-          {
-            orderId: selectedBill.orderId,
-            data: {
-              discountType,
-              discountValue,
-            },
-          },
-          {
-            onSuccess: () => {
-              setDiscountDialogOpen(false);
-              setSelectedBill(null);
-            },
-          },
-        );
+  const handleConfirmPayment = useCallback(
+    (bill: Bill) => {
+      if (bill.paymentId) {
+        confirmPaymentMutation.mutate(bill.paymentId);
       }
     },
-    [selectedBill, discountMutation],
-  );
-
-  const handleProcessPayment = useCallback((bill: Bill) => {
-    setSelectedBill(bill);
-    setPaymentDialogOpen(true);
-  }, []);
-
-  const handlePaymentConfirm = useCallback(
-    (paymentMethod: PaymentMethod) => {
-      if (selectedBill && selectedBill.orderId) {
-        paymentMutation.mutate(
-          {
-            orderId: selectedBill.orderId,
-            data: {
-              paymentMethod,
-            },
-          },
-          {
-            onSuccess: () => {
-              setPaymentDialogOpen(false);
-              setSelectedBill(null);
-            },
-          },
-        );
-      }
-    },
-    [selectedBill, paymentMutation],
+    [confirmPaymentMutation],
   );
 
   const isProcessing =
-    createMutation.isPending ||
-    discountMutation.isPending ||
-    paymentMutation.isPending ||
+    acceptPaymentMutation.isPending ||
+    confirmPaymentMutation.isPending ||
     printMutation.isPending;
 
   if (billsLoading) {
@@ -161,8 +118,6 @@ export function BillsContent() {
         <BillsHeader onCreateBill={handleCreateBill} />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Stats */}
-
           {/* Bills Grid */}
           {bills.length === 0 ? (
             <EmptyState
@@ -173,12 +128,11 @@ export function BillsContent() {
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {bills.map((bill) => (
                 <BillCard
-                  key={bill.orderId}
+                  key={`${bill.paymentId}-${bill.orderId}`}
                   bill={bill}
                   onViewDetails={handleViewDetails}
                   onPrint={handlePrint}
-                  onProcessPayment={handleProcessPayment}
-                  onApplyDiscount={handleApplyDiscount}
+                  onConfirmPayment={handleConfirmPayment}
                   isProcessing={isProcessing}
                 />
               ))}
@@ -191,23 +145,8 @@ export function BillsContent() {
           open={createDialogOpen}
           onOpenChange={setCreateDialogOpen}
           onConfirm={handleCreateConfirm}
-          isProcessing={createMutation.isPending}
-        />
-
-        <ApplyDiscountDialog
-          open={discountDialogOpen}
-          onOpenChange={setDiscountDialogOpen}
-          onConfirm={handleDiscountConfirm}
-          bill={selectedBill}
-          isProcessing={discountMutation.isPending}
-        />
-
-        <ProcessPaymentDialog
-          open={paymentDialogOpen}
-          onOpenChange={setPaymentDialogOpen}
-          onConfirm={handlePaymentConfirm}
-          bill={selectedBill}
-          isProcessing={paymentMutation.isPending}
+          isProcessing={acceptPaymentMutation.isPending}
+          pendingPayments={pendingPayments}
         />
 
         <BillDetailsDialog

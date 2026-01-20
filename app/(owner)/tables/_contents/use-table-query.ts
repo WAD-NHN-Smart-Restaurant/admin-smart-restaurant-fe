@@ -110,8 +110,7 @@ export function useTableQuery(filters: TableFilter) {
     ({ tableIds, waiterId }: { tableIds: string[]; waiterId: string | null }) =>
       bulkAssignWaiterToTables(tableIds, waiterId),
     {
-      successMessage: (data: { data: { message: any } }) =>
-        data?.data?.message || "Waiter assigned to tables successfully",
+      successMessage: "Waiter assigned to tables successfully",
       errorMessage: "Failed to assign waiter to tables",
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["tables"] });

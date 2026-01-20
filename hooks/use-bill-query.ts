@@ -14,6 +14,10 @@ import {
   printBill,
 } from "@/api/bill-api";
 import {
+  acceptPaymentWithDiscount,
+  confirmCashPayment,
+} from "@/api/payment-api";
+import {
   Bill,
   BillFilter,
   CreateBillRequest,
@@ -135,6 +139,50 @@ export const useProcessPayment = () => {
   });
 };
 
+// Hook to accept payment request with discount (waiter)
+export const useAcceptPaymentWithDiscount = () => {
+  const queryClient = useQueryClient();
+
+  return useSafeMutation<
+    Awaited<ReturnType<typeof acceptPaymentWithDiscount>>,
+    { paymentId: string; discountRate: number; discountAmount?: number }
+  >(
+    ({ paymentId, discountRate, discountAmount = 0 }) =>
+      acceptPaymentWithDiscount(paymentId, discountRate, discountAmount),
+    {
+      successMessage: "Bill request accepted",
+      errorMessage: "Failed to accept bill request",
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: billQueryKeys.all });
+      },
+    },
+  );
+};
+
+// Hook to confirm cash payment (manual success)
+export const useConfirmCashPayment = () => {
+  const queryClient = useQueryClient();
+
+  return useSafeMutation<
+    Awaited<ReturnType<typeof confirmCashPayment>>,
+    { paymentId: string }
+  >(({ paymentId }) => confirmCashPayment(paymentId), {
+    successMessage: "Payment confirmed",
+    errorMessage: "Failed to confirm payment",
+    onSuccess: (data) => {
+      if (data?.orderId) {
+        queryClient.invalidateQueries({
+          queryKey: billQueryKeys.detail(data.orderId),
+        });
+        queryClient.invalidateQueries({
+          queryKey: billQueryKeys.byOrder(data.orderId),
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: billQueryKeys.all });
+    },
+  });
+};
+
 // Hook to print bill
 export const usePrintBill = () => {
   return useSafeMutation<Blob, string>((billId) => printBill(billId), {
@@ -152,4 +200,42 @@ export const usePrintBill = () => {
       window.URL.revokeObjectURL(url);
     }, []),
   });
+};
+
+// Hook to accept payment with discount (mark as accepted)
+export const useAcceptPayment = () => {
+  const queryClient = useQueryClient();
+
+  return useSafeMutation<
+    unknown,
+    { paymentId: string; discountRate: number; discountAmount: number }
+  >(
+    ({ paymentId, discountRate, discountAmount }) =>
+      acceptPaymentWithDiscount(paymentId, discountRate, discountAmount),
+    {
+      successMessage: "Payment accepted and discount applied successfully",
+      errorMessage: "Failed to accept payment",
+      onSuccess: () => {
+        // Invalidate all bill queries to refresh everything
+        queryClient.invalidateQueries({ queryKey: billQueryKeys.all });
+      },
+    },
+  );
+};
+
+// Hook to confirm cash payment (mark as success)
+export const useConfirmPayment = () => {
+  const queryClient = useQueryClient();
+
+  return useSafeMutation<unknown, string>(
+    (paymentId) => confirmCashPayment(paymentId),
+    {
+      successMessage: "Payment confirmed successfully",
+      errorMessage: "Failed to confirm payment",
+      onSuccess: () => {
+        // Invalidate all bill queries to refresh everything
+        queryClient.invalidateQueries({ queryKey: billQueryKeys.all });
+      },
+    },
+  );
 };

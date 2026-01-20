@@ -268,18 +268,37 @@ export const useWaiterSocketListeners = (
     // Listen for bill-requested events
     const unsubscribeBillRequested = subscribe(
       WaiterSocketEvent.BILL_REQUESTED,
-      (data: unknown) => {
+      async (data: unknown) => {
         console.log("Bill requested:", data);
+        const payload = data as {
+          order_id: string;
+          table_id: string;
+          timestamp: string;
+        };
+
         // Refetch bills data
         queryClient.refetchQueries({
           queryKey: waiterQueryKeys.bills(),
         });
+
         // Notify parent about unseen updates in bills tab
         onUnseenUpdate?.(["bills"]);
 
         // Play sound notification
         const audio = new Audio("/sounds/noti.wav");
         audio.play().catch((err) => console.error("Error playing sound:", err));
+
+        // Show toast notification with table info
+        const { toast } = await import("react-toastify");
+        // Get table number from assigned tables if available
+        const assignedTable = (tablesData || []).find(
+          (t) => t.id === payload.table_id,
+        );
+        const tableNumber = assignedTable?.tableNumber || "Unknown";
+        toast.info(`Bill requested for Table ${tableNumber}`, {
+          position: "top-right",
+          autoClose: 5000,
+        });
       },
     );
 

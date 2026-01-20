@@ -178,6 +178,23 @@ export function BillDetailsDialog({
                     ${displayBill.tax?.toFixed(2)}
                   </span>
                 </div>
+                {displayBill.payments?.[0]?.metadata &&
+                  (displayBill.payments[0].metadata as { tipAmount?: number })
+                    .tipAmount && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Tip</span>
+                      <span className="text-gray-900">
+                        $
+                        {(
+                          (
+                            displayBill.payments[0].metadata as {
+                              tipAmount?: number;
+                            }
+                          ).tipAmount || 0
+                        ).toFixed(2)}
+                      </span>
+                    </div>
+                  )}
               </>
             )}
             <div className="flex justify-between text-lg font-bold border-t pt-2">
