@@ -1,5 +1,6 @@
 import axios, { AxiosResponse, AxiosRequestConfig } from "axios";
 import Cookies from "js-cookie";
+import { get } from "lodash";
 
 // Extend InternalAxiosRequestConfig to include _retry flag
 
@@ -36,6 +37,10 @@ export const tokenManager = {
 
   getAccessToken: (): string | null => {
     return Cookies.get(ACCESS_TOKEN_KEY) || null;
+  },
+
+  getRefreshToken: (): string | null => {
+    return Cookies.get("refresh_token") || null;
   },
 
   clearTokens: () => {

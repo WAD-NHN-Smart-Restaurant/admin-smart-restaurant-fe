@@ -136,6 +136,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user });
 
       // Redirect to dashboard
+      console.log("Redirecting to dashboard after login");
       router.refresh();
       router.push(PATHS.TABLES.INDEX);
     },
@@ -222,7 +223,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (!isOnRecoveryPage && !hasHashToken) {
           console.log("Redirecting to login from SIGNED_OUT");
           queryClient.clear();
-          router.push(AUTH_PATHS.LOGIN);
+          setTimeout(() => {
+            router.push(AUTH_PATHS.LOGIN);
+          }, 4000);
         } else {
           console.log("Staying on page - token exchange in progress");
         }
