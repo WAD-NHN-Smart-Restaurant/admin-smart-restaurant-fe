@@ -6,10 +6,14 @@ export const AUTH_PATHS = {
 };
 
 export const PROTECTED_PATHS = {
+  PROFILE: "/profile",
   TABLES: {
     INDEX: "/tables",
     CREATE: "/tables/create",
     EDIT: (id: string) => `/tables/${id}/edit`,
+  },
+  STAFF: {
+    INDEX: "/staff",
   },
   MENU: {
     CATEGORIES: {

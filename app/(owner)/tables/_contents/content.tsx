@@ -157,7 +157,7 @@ export function TablesContent() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
+      <div className="space-y-6 p-4">
         {/* Header */}
         <TableHeader
           onCreateClick={handleCreateClick}

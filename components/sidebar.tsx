@@ -13,6 +13,8 @@ import {
   ForkKnife,
   Grid3x3,
   Tag,
+  UserCircle,
+  UsersRound,
 } from "lucide-react";
 import { PATHS } from "@/data/path";
 import { Button } from "@/components/ui/button";
@@ -30,6 +32,11 @@ const navItems: NavItem[] = [
     title: "Tables",
     href: PATHS.TABLES.INDEX,
     icon: <Users className="h-5 w-5" />,
+  },
+  {
+    title: "Staff Management",
+    href: PATHS.STAFF.INDEX,
+    icon: <UsersRound className="h-5 w-5" />,
   },
   {
     title: "Menu Categories",
@@ -120,7 +127,11 @@ function SidebarContent({
 
       {/* User Profile */}
       <div className="border-t border-gray-800 p-4">
-        <div className="mb-3 flex items-center gap-3 rounded-lg bg-gray-800 p-3">
+        <Link
+          href="/profile"
+          onClick={onClose}
+          className="mb-3 flex items-center gap-3 rounded-lg bg-gray-800 p-3 hover:bg-gray-700 transition-colors cursor-pointer"
+        >
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-700 text-sm font-bold">
             {user?.name
               ? user.name
@@ -138,7 +149,8 @@ function SidebarContent({
               {user?.role?.toUpperCase()}
             </div>
           </div>
-        </div>
+          <UserCircle className="h-5 w-5 text-gray-400" />
+        </Link>
         <button
           onClick={() => {
             onLogout();
