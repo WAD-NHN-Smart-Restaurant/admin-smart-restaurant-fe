@@ -39,7 +39,7 @@ export const getStaffList = async (
     message: string;
     data: {
       data: StaffMember[];
-      meta: {
+      pagination: {
         total: number;
         page: number;
         limit: number;
@@ -50,7 +50,7 @@ export const getStaffList = async (
 
   return {
     items: response.data.data.data || [],
-    pagination: response.data.data.meta || {
+    pagination: response.data.data.pagination || {
       total: 0,
       page: 1,
       limit: 10,
@@ -127,11 +127,7 @@ export const updateStaff = async (
 ): Promise<StaffMember> => {
   const response = await api.patch<
     UpdateStaffRequest,
-    {
-      success: boolean;
-      message: string;
-      data: StaffMember;
-    }
+    ApiResponse<StaffMember>
   >(STAFF_API.BY_ID(id), data);
 
   return response.data.data;
