@@ -20,7 +20,7 @@ import {
 import { useState, useCallback } from "react";
 import { Bill, PaymentMethod } from "@/types/bill-type";
 import { PAYMENT_METHOD_OPTIONS } from "@/schema/bill-schema";
-import { CreditCard, Wallet } from "lucide-react";
+import { CreditCard } from "lucide-react";
 
 interface ProcessPaymentDialogProps {
   open: boolean;
@@ -49,10 +49,6 @@ export function ProcessPaymentDialog({
     switch (method) {
       case PaymentMethod.CASH:
         return "💵";
-      case PaymentMethod.ZALOPAY:
-      case PaymentMethod.MOMO:
-      case PaymentMethod.VNPAY:
-        return <Wallet className="h-5 w-5" />;
       case PaymentMethod.STRIPE:
         return <CreditCard className="h-5 w-5" />;
       default:
