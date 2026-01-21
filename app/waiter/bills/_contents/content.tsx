@@ -2,60 +2,45 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { ProtectedRoute } from "@/components/auth-guard";
-import { useAuth } from "@/context/auth-context";
 import { BillsHeader } from "../_components/bills-header";
 import { BillCard } from "../_components/bill-card";
 import { CreateBillDialog } from "../_components/create-bill-dialog";
 import { BillDetailsDialog } from "../_components/bill-details-dialog";
+import { PrintBillDialog } from "../_components/print-bill-dialog";
 import { EmptyState } from "@/components/empty-state";
 import { PageLoadingSkeleton } from "@/components/page-loading-skeleton";
 import {
-  useGetBills,
+  useGetCompletedPayments,
+  useGetPendingPayments,
   useAcceptPayment,
   useConfirmPayment,
-  usePrintBill,
 } from "@/hooks/use-bill-query";
-import { Bill, BillFilter, PaymentStatus } from "@/types/bill-type";
+import { PaymentBill } from "@/api/payment-api";
 
 export function BillsContent() {
-  const { user } = useAuth();
-
   // State
-  const [filters] = useState<BillFilter>({
-    page: 1,
-    limit: 50,
-    waiterId: user?.id, // Filter by current waiter
-  });
+  const [page] = useState(1);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
-  const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
+  const [printDialogOpen, setPrintDialogOpen] = useState(false);
+  const [selectedBill, setSelectedBill] = useState<PaymentBill | null>(null);
 
-  // Queries
-  const { data: billsData, isLoading: billsLoading } = useGetBills(filters);
+  // Queries - use new payment endpoints
+  const { data: paymentsData, isLoading: paymentsLoading } =
+    useGetCompletedPayments(page, 50);
+  const { data: pendingPaymentsData } = useGetPendingPayments();
 
   // Mutations
   const acceptPaymentMutation = useAcceptPayment();
   const confirmPaymentMutation = useConfirmPayment();
-  const printMutation = usePrintBill();
 
-  // Get bills from data
-  const bills = useMemo(() => billsData?.items || [], [billsData]);
+  // Get payments from data
+  const payments = useMemo(() => paymentsData?.items || [], [paymentsData]);
 
   // Get pending payment requests (status='created')
   const pendingPayments = useMemo(
-    () =>
-      bills
-        .filter((bill) => bill.paymentStatus === PaymentStatus.CREATED)
-        .map((bill) => ({
-          paymentId: bill.paymentId || "",
-          orderId: bill.orderId,
-          tableNumber: bill.tableNumber,
-          totalAmount: bill.totalAmount,
-          tax: bill.tax || 0,
-          discountAmount: bill.discountAmount || 0,
-          finalTotal: bill.finalTotal || bill.totalAmount,
-        })),
-    [bills],
+    () => pendingPaymentsData || [],
+    [pendingPaymentsData],
   );
 
   // Handlers
@@ -77,20 +62,18 @@ export function BillsContent() {
     [acceptPaymentMutation],
   );
 
-  const handleViewDetails = useCallback((bill: Bill) => {
+  const handleViewDetails = useCallback((bill: PaymentBill) => {
     setSelectedBill(bill);
     setDetailsDialogOpen(true);
   }, []);
 
-  const handlePrint = useCallback(
-    (billId: string) => {
-      printMutation.mutate(billId);
-    },
-    [printMutation],
-  );
+  const handlePrint = useCallback((bill: PaymentBill) => {
+    setSelectedBill(bill);
+    setPrintDialogOpen(true);
+  }, []);
 
   const handleConfirmPayment = useCallback(
-    (bill: Bill) => {
+    (bill: PaymentBill) => {
       if (bill.paymentId) {
         confirmPaymentMutation.mutate(bill.paymentId);
       }
@@ -99,11 +82,9 @@ export function BillsContent() {
   );
 
   const isProcessing =
-    acceptPaymentMutation.isPending ||
-    confirmPaymentMutation.isPending ||
-    printMutation.isPending;
+    acceptPaymentMutation.isPending || confirmPaymentMutation.isPending;
 
-  if (billsLoading) {
+  if (paymentsLoading) {
     return (
       <ProtectedRoute>
         <PageLoadingSkeleton />
@@ -119,17 +100,17 @@ export function BillsContent() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Bills Grid */}
-          {bills.length === 0 ? (
+          {payments.length === 0 ? (
             <EmptyState
-              title="No bills found"
-              description="Create a bill to get started."
+              title="No payments found"
+              description="Customer payments will appear here."
             />
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {bills.map((bill) => (
+              {payments.map((payment) => (
                 <BillCard
-                  key={`${bill.paymentId}-${bill.orderId}`}
-                  bill={bill}
+                  key={`${payment.paymentId}-${payment.orderId}`}
+                  bill={payment}
                   onViewDetails={handleViewDetails}
                   onPrint={handlePrint}
                   onConfirmPayment={handleConfirmPayment}
@@ -153,7 +134,19 @@ export function BillsContent() {
           open={detailsDialogOpen}
           onOpenChange={setDetailsDialogOpen}
           bill={selectedBill}
-          onPrint={handlePrint}
+          onPrint={(orderId: string) => {
+            // Find payment by orderId and open print dialog
+            const paymentToPrint = payments.find((p) => p.orderId === orderId);
+            if (paymentToPrint) {
+              handlePrint(paymentToPrint);
+            }
+          }}
+        />
+
+        <PrintBillDialog
+          open={printDialogOpen}
+          onOpenChange={setPrintDialogOpen}
+          bill={selectedBill}
         />
       </div>
     </ProtectedRoute>

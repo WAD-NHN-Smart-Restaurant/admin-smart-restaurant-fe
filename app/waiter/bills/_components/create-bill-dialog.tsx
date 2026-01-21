@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useState, useCallback, useMemo } from "react";
-// import { PaymentStatus } from "@/types/bill-type";
+import { PendingPayment } from "@/api/payment-api";
 
 interface CreateBillDialogProps {
   open: boolean;
@@ -30,16 +30,7 @@ interface CreateBillDialogProps {
     discountAmount: number,
   ) => void;
   isProcessing?: boolean;
-  // Accept list of pending payment requests (from getBills filtered by status='created')
-  pendingPayments: Array<{
-    paymentId: string;
-    orderId: string;
-    tableNumber: string;
-    totalAmount: number;
-    tax?: number;
-    discountAmount?: number;
-    finalTotal?: number;
-  }>;
+  pendingPayments: PendingPayment[];
 }
 
 export function CreateBillDialog({
@@ -49,12 +40,12 @@ export function CreateBillDialog({
   isProcessing = false,
   pendingPayments = [],
 }: CreateBillDialogProps) {
-  const [selectedPaymentId, setSelectedPaymentId] = useState("");
+  const [selectedOrderId, setSelectedOrderId] = useState("");
   const [discountRate, setDiscountRate] = useState<string>("");
 
   const selectedPayment = useMemo(
-    () => pendingPayments.find((p) => p.paymentId === selectedPaymentId),
-    [pendingPayments, selectedPaymentId],
+    () => pendingPayments.find((p) => p.orderId === selectedOrderId),
+    [pendingPayments, selectedOrderId],
   );
 
   const discountValue = useMemo(() => {
@@ -65,13 +56,18 @@ export function CreateBillDialog({
 
   const handleConfirm = useCallback(() => {
     const rate = parseFloat(discountRate) || 0;
-    if (selectedPaymentId && rate >= 0 && rate <= 100) {
-      onConfirm(selectedPaymentId, rate, discountValue);
+    if (
+      selectedPayment &&
+      selectedPayment.paymentId &&
+      rate >= 0 &&
+      rate <= 100
+    ) {
+      onConfirm(selectedPayment.paymentId, rate, discountValue);
       // Reset after confirm
-      setSelectedPaymentId("");
+      setSelectedOrderId("");
       setDiscountRate("");
     }
-  }, [selectedPaymentId, discountRate, discountValue, onConfirm]);
+  }, [selectedPayment, discountRate, discountValue, onConfirm]);
 
   const subtotalAfterDiscount = useMemo(() => {
     if (!selectedPayment) return 0;
@@ -98,12 +94,9 @@ export function CreateBillDialog({
             <Label htmlFor="payment" className="mb-2 block">
               Select Order
             </Label>
-            <Select
-              value={selectedPaymentId}
-              onValueChange={setSelectedPaymentId}
-            >
+            <Select value={selectedOrderId} onValueChange={setSelectedOrderId}>
               <SelectTrigger id="payment">
-                <SelectValue placeholder="Select a payment request" />
+                <SelectValue placeholder="Select an order" />
               </SelectTrigger>
               <SelectContent>
                 {pendingPayments.length === 0 ? (
@@ -112,12 +105,8 @@ export function CreateBillDialog({
                   </div>
                 ) : (
                   pendingPayments.map((payment) => (
-                    <SelectItem
-                      key={payment.paymentId}
-                      value={payment.paymentId}
-                    >
-                      Table {payment.tableNumber} - $
-                      {payment.totalAmount.toFixed(2)}
+                    <SelectItem key={payment.orderId} value={payment.orderId}>
+                      {`Order ${payment.orderId.slice(0, 8)} - Table ${payment.tableNumber} - $${payment.totalAmount.toFixed(2)}`}
                     </SelectItem>
                   ))
                 )}
@@ -191,7 +180,7 @@ export function CreateBillDialog({
           <Button
             onClick={handleConfirm}
             disabled={
-              !selectedPaymentId ||
+              !selectedOrderId ||
               !discountRate ||
               parseFloat(discountRate) < 0 ||
               parseFloat(discountRate) > 100 ||

@@ -16,6 +16,10 @@ import {
 import {
   acceptPaymentWithDiscount,
   confirmCashPayment,
+  getCompletedPayments,
+  getPendingPayments,
+  // PaymentBill,
+  // PendingPayment,
 } from "@/api/payment-api";
 import {
   Bill,
@@ -38,7 +42,40 @@ export const billQueryKeys = {
     [...billQueryKeys.all, "by-payment", paymentId] as const,
 };
 
-// Hook to get bills with filters
+export const paymentQueryKeys = {
+  all: ["payments"] as const,
+  completed: (page?: number, limit?: number) =>
+    [...paymentQueryKeys.all, "completed", page, limit] as const,
+  pending: () => [...paymentQueryKeys.all, "pending"] as const,
+};
+
+// Hook to get completed payments (for Bills page)
+export const useGetCompletedPayments = (
+  page: number = 1,
+  limit: number = 50,
+) => {
+  const queryKey = useMemo(
+    () => paymentQueryKeys.completed(page, limit),
+    [page, limit],
+  );
+
+  return useSafeQuery(queryKey, () => getCompletedPayments(page, limit), {
+    errorMessage: "Failed to fetch payments",
+    staleTime: 30000, // 30 seconds
+  });
+};
+
+// Hook to get pending payment requests (for Create Bill dialog)
+export const useGetPendingPayments = () => {
+  const queryKey = useMemo(() => paymentQueryKeys.pending(), []);
+
+  return useSafeQuery(queryKey, () => getPendingPayments(), {
+    errorMessage: "Failed to fetch pending payments",
+    staleTime: 10000, // 10 seconds
+  });
+};
+
+// Hook to get bills with filters (keep for compatibility)
 export const useGetBills = (filters?: BillFilter) => {
   const queryKey = useMemo(() => billQueryKeys.list(filters), [filters]);
 
@@ -153,6 +190,7 @@ export const useAcceptPaymentWithDiscount = () => {
       successMessage: "Bill request accepted",
       errorMessage: "Failed to accept bill request",
       onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: paymentQueryKeys.all });
         queryClient.invalidateQueries({ queryKey: billQueryKeys.all });
       },
     },
@@ -165,11 +203,13 @@ export const useConfirmCashPayment = () => {
 
   return useSafeMutation<
     Awaited<ReturnType<typeof confirmCashPayment>>,
-    { paymentId: string }
-  >(({ paymentId }) => confirmCashPayment(paymentId), {
+    string
+  >((paymentId: string) => confirmCashPayment(paymentId), {
     successMessage: "Payment confirmed",
     errorMessage: "Failed to confirm payment",
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: paymentQueryKeys.all });
+      queryClient.invalidateQueries({ queryKey: billQueryKeys.all });
       if (data?.orderId) {
         queryClient.invalidateQueries({
           queryKey: billQueryKeys.detail(data.orderId),
@@ -178,7 +218,6 @@ export const useConfirmCashPayment = () => {
           queryKey: billQueryKeys.byOrder(data.orderId),
         });
       }
-      queryClient.invalidateQueries({ queryKey: billQueryKeys.all });
     },
   });
 };

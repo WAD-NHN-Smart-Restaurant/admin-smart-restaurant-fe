@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Bill } from "@/types/bill-type";
+import { PaymentBill } from "@/api/payment-api";
 import { format } from "date-fns";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +17,7 @@ import { useGetBillByPayment } from "@/hooks/use-bill-query";
 interface BillDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  bill: Bill | null;
+  bill: PaymentBill | null;
   onPrint?: (billId: string) => void;
 }
 
