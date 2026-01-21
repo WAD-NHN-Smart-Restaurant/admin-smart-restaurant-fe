@@ -42,23 +42,23 @@ export function TableFiltersSection({
             Filter & Search
           </h3>
         </div>
-        <div className="flex w-full justify-between gap-4">
+        <div className="flex flex-col lg:flex-row w-full justify-between gap-4">
           <div className="flex-1 flex gap-4">
-            <div className="space-y-2">
+            <div className="space-y-2 w-full">
               <label className="text-sm font-medium">Search</label>
-              <div className="relative">
+              <div className="relative w-full">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Search by table number or location..."
                   value={searchQuery}
                   onChange={(e) => onSearchChange(e.target.value)}
-                  className="pl-9 w-[300px]"
+                  className="pl-9"
                 />
               </div>
             </div>
           </div>
-          <div className="flex gap-2">
-            <div className="space-y-2">
+          <div className="flex flex-col lg:flex-row gap-2">
+            <div className="space-y-2 w-full ">
               <label className="text-sm font-medium">Status</label>
               <Select
                 value={filters.status || "all"}
@@ -70,7 +70,7 @@ export function TableFiltersSection({
                   })
                 }
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>{" "}
                 <SelectContent>
@@ -82,14 +82,11 @@ export function TableFiltersSection({
               </Select>
             </div>
 
-            <div className=" flex flex-col gap-y-1">
+            <div className=" flex flex-col gap-y-1 w-full">
               <label className="text-sm font-medium">Sort By</label>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-[200px] justify-between"
-                  >
+                  <Button variant="outline" className="w-full justify-between">
                     <div className="flex gap-1 items-center font-normal">
                       {filters.sortBy === "tableNumber" && "Table Number"}
                       {filters.sortBy === "capacity" && "Capacity"}
@@ -102,7 +99,7 @@ export function TableFiltersSection({
                     <ChevronDown className="h-4 w-4 opacity-50" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-[200px]">
+                <DropdownMenuContent className="w-full">
                   <DropdownMenuItem
                     onClick={() =>
                       onFiltersChange({
@@ -207,7 +204,7 @@ export function TableFiltersSection({
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 w-full">
               <label className="text-sm font-medium">Location</label>
               <Select
                 value={filters.location || "all"}
@@ -218,7 +215,7 @@ export function TableFiltersSection({
                   })
                 }
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="All Locations" />
                 </SelectTrigger>
                 <SelectContent>

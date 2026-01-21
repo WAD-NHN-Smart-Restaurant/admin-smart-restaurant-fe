@@ -79,8 +79,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     pathname?.includes("/reset-password") || pathname?.includes("/callback");
 
   // Skip auth checks if there's a token exchange in progress or on recovery routes
-  const shouldSkipAuthCheck =
-    isPublicRoute || hasAuthTokenInUrl || isRecoveryRoute;
+  const shouldSkipAuthCheck = hasAuthTokenInUrl || isRecoveryRoute;
 
   // Check authentication status (skip for public routes)
   const { data: isAuthenticated = false, isLoading: isAuthLoading } =

@@ -105,12 +105,16 @@ export default function Content() {
               {/* Orders Per Day */}
               {chartsData.ordersPerDay &&
                 chartsData.ordersPerDay.length > 0 && (
-                  <OrdersPerDayChart data={chartsData.ordersPerDay} />
+                  <div className="col-span-2 lg:col-span-1">
+                    <OrdersPerDayChart data={chartsData.ordersPerDay} />
+                  </div>
                 )}
               {/* Popular Items */}
               {chartsData.popularItems &&
                 chartsData.popularItems.length > 0 && (
-                  <PopularItemsChart data={chartsData.popularItems} />
+                  <div className="col-span-2 lg:col-span-1">
+                    <PopularItemsChart data={chartsData.popularItems} />
+                  </div>
                 )}
               {/* Peak Hours */}
               {chartsData.peakHours && chartsData.peakHours.length > 0 && (

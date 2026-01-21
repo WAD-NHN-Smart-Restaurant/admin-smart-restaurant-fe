@@ -114,12 +114,23 @@ interface PublicRouteProps {
 export const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuthCheck();
   const router = useRouter();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
-      router.push(PATHS.TABLES.INDEX);
+      switch (user?.role) {
+        case "admin":
+          router.push(PATHS.TABLES.INDEX);
+          break;
+        case "waiter":
+          router.push(PATHS.WAITER.ORDERS);
+          break;
+        case "kitchen":
+          router.push(PATHS.KITCHEN.INDEX);
+          break;
+      }
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, router, user?.role]);
 
   if (isLoading || isAuthenticated) {
     return <LoadingSpinner />;
