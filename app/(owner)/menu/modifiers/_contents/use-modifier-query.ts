@@ -12,7 +12,7 @@ import {
   deleteModifierOption,
   attachModifierGroupsToItem,
   getItemModifierGroups,
-} from "@/api/modifier-api";
+} from "@/apis/modifier-api";
 import {
   ModifierGroupFilterForm,
   UpdateModifierGroupForm,

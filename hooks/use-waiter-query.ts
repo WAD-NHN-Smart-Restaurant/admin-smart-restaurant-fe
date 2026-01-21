@@ -13,14 +13,14 @@ import {
   markAsServed,
   getAssignedTables,
   getOrdersByTableId,
-} from "@/api/waiter-api";
+} from "@/apis/waiter-api";
 import {
   getBills,
   getBillById,
   createBill,
   applyDiscount,
   processPayment,
-} from "@/api/bill-api";
+} from "@/apis/bill-api";
 import {
   OrderFilter,
   AcceptOrderItemRequest,

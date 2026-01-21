@@ -5,7 +5,7 @@ import {
   getRevenueReport,
   getTopMenuItems,
   getAnalyticsCharts,
-} from "@/api/analytics-api";
+} from "@/apis/analytics-api";
 import {
   RevenueReportParams,
   TopMenuItemsParams,

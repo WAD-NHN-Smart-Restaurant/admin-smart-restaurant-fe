@@ -23,7 +23,7 @@ import {
   downloadQRCode,
   downloadAllQRCodes,
   triggerDownload,
-} from "@/api/table-api";
+} from "@/apis/table-api";
 import { toast } from "react-toastify";
 
 export function TablesContent() {

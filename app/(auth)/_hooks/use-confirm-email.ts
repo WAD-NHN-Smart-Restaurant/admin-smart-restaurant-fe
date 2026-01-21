@@ -1,5 +1,5 @@
 import { useMutation, UseMutationOptions } from "@tanstack/react-query";
-import { resendConfirmationApi } from "@/api/auth-api";
+import { resendConfirmationApi } from "@/apis/auth-api";
 
 export function useResendConfirmEmail(
   options?: Omit<

@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useState, useCallback, useMemo } from "react";
-import { PendingPayment } from "@/api/payment-api";
+import { PendingPayment } from "@/apis/payment-api";
 
 interface CreateBillDialogProps {
   open: boolean;

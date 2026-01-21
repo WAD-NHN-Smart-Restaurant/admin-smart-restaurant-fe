@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { tableSchema } from "@/schema/table-schema";
-import { createTable, updateTable } from "@/api/table-api";
+import { createTable, updateTable } from "@/apis/table-api";
 import {
   Table,
   TableLocation,

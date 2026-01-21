@@ -1,4 +1,4 @@
-import { getGuestMenu } from "@/api/guest-menu-api";
+import { getGuestMenu } from "@/apis/guest-menu-api";
 import type { GuestMenuQueryParams } from "@/types/guest-menu-type";
 import { useSafeQuery } from "@/hooks/use-safe-query";
 

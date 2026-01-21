@@ -9,7 +9,7 @@ import {
   updatePhoneNumber,
   Profile,
   UpdateProfileDto,
-} from "@/api/profile-api";
+} from "@/apis/profile-api";
 import { createClient } from "@/libs/supabase/client";
 
 const PROFILE_QUERY_KEY = (userId: string) => ["profile", userId];

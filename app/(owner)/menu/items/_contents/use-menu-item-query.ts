@@ -11,7 +11,7 @@ import {
   deleteMenuItemPhoto,
   setPrimaryMenuItemPhoto,
   attachModifierGroupsToMenuItem,
-} from "@/api/menu-item-api";
+} from "@/apis/menu-item-api";
 import {
   MenuItemFilterForm,
   AttachModifierGroupsForm,

@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PaymentBill } from "@/api/payment-api";
+import { PaymentBill } from "@/apis/payment-api";
 import { Clock, Download, CreditCard } from "lucide-react";
 import { format } from "date-fns";
 import { useCallback, useMemo } from "react";

@@ -13,7 +13,7 @@ import {
   assignWaiterToTable,
   bulkAssignWaiterToTables,
   getUsersByRole,
-} from "@/api/table-api";
+} from "@/apis/table-api";
 import {
   TableFilter,
   TableStatus,

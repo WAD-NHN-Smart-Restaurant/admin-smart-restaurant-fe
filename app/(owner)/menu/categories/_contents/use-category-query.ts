@@ -6,7 +6,7 @@ import {
   updateCategory,
   updateCategoryStatus,
   deleteCategory,
-} from "@/api/category-api";
+} from "@/apis/category-api";
 import {
   CategoryFilterForm,
   UpdateCategoryForm,

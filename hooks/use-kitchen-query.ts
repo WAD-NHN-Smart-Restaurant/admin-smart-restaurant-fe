@@ -9,7 +9,7 @@ import {
   updateOrderItemStatus,
   bulkUpdateOrderItems,
   rejectOrderItem,
-} from "@/api/kitchen-api";
+} from "@/apis/kitchen-api";
 import {
   KitchenOrder,
   KitchenOrderFilter,

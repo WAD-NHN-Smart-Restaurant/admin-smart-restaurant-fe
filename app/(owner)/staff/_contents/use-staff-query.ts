@@ -9,7 +9,7 @@ import {
   createStaff,
   updateStaff,
   toggleStaffStatus,
-} from "@/api/staff-management-api";
+} from "@/apis/staff-management-api";
 import { StaffFilter, StaffRole } from "@/types/staff-management-type";
 import {
   CreateStaffForm,

@@ -15,7 +15,7 @@ import {
   useAcceptPayment,
   useConfirmPayment,
 } from "@/hooks/use-bill-query";
-import { PaymentBill } from "@/api/payment-api";
+import { PaymentBill } from "@/apis/payment-api";
 
 export function BillsContent() {
   // State

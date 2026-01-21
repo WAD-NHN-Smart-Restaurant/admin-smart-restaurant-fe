@@ -12,7 +12,7 @@ import {
   applyDiscount,
   processPayment,
   printBill,
-} from "@/api/bill-api";
+} from "@/apis/bill-api";
 import {
   acceptPaymentWithDiscount,
   confirmCashPayment,
@@ -20,7 +20,7 @@ import {
   getPendingPayments,
   // PaymentBill,
   // PendingPayment,
-} from "@/api/payment-api";
+} from "@/apis/payment-api";
 import {
   Bill,
   BillFilter,

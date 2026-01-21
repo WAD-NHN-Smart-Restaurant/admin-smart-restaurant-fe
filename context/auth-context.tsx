@@ -13,7 +13,7 @@ import {
   checkAuthStatus,
   getProfile,
   Profile,
-} from "@/api/auth-api";
+} from "@/apis/auth-api";
 import { tokenManager } from "@/libs/api-request";
 import { createClient } from "@/libs/supabase/client";
 import { AUTH_PATHS, PATHS } from "@/data/path";

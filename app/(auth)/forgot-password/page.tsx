@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Mail, ArrowLeft } from "lucide-react";
-import { resetPasswordApi } from "@/api/auth-api";
+import { resetPasswordApi } from "@/apis/auth-api";
 import { AUTH_PATHS } from "@/data/path";
 
 const forgotPasswordSchema = z.object({
