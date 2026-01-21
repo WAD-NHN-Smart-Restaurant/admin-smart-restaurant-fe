@@ -1,6 +1,5 @@
 import axios, { AxiosResponse, AxiosRequestConfig } from "axios";
 import Cookies from "js-cookie";
-import { get } from "lodash";
 
 // Extend InternalAxiosRequestConfig to include _retry flag
 

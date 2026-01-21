@@ -297,7 +297,7 @@ export const useWaiterSocketListeners = (
         const tableNumber = assignedTable?.tableNumber || "Unknown";
         toast.info(`Bill requested for Table ${tableNumber}`, {
           position: "top-right",
-          autoClose: 5000,
+          autoClose: 1000,
         });
       },
     );

@@ -39,12 +39,19 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
         case "waiter":
           router.push(PATHS.WAITER.ORDERS);
           break;
-        case "kitchen":
+        case "kitchen_staff":
           router.push(PATHS.KITCHEN.INDEX);
           break;
       }
     }
-  }, [isAuthenticated, isLoading, isUnauthenticated, pathname, router]);
+  }, [
+    isAuthenticated,
+    isLoading,
+    isUnauthenticated,
+    pathname,
+    router,
+    user?.role,
+  ]);
 
   // Show loading spinner while checking authentication
   if (isLoading) {
@@ -114,6 +121,7 @@ interface PublicRouteProps {
 export const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuthCheck();
   const router = useRouter();
+
   const { user } = useAuth();
 
   useEffect(() => {
@@ -125,14 +133,14 @@ export const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
         case "waiter":
           router.push(PATHS.WAITER.ORDERS);
           break;
-        case "kitchen":
+        case "kitchen_staff":
           router.push(PATHS.KITCHEN.INDEX);
           break;
       }
     }
-  }, [isAuthenticated, isLoading, router, user?.role]);
+  }, [isAuthenticated, isLoading, router, user]);
 
-  if (isLoading || isAuthenticated) {
+  if (isLoading) {
     return <LoadingSpinner />;
   }
 

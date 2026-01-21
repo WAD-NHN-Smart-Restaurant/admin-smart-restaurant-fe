@@ -96,7 +96,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
     socket.on("connect_error", (error) => {
       console.error("Socket.IO connection error:", error);
-      toast.error("Connection error. Retrying...");
     });
 
     socketRef.current = socket;
