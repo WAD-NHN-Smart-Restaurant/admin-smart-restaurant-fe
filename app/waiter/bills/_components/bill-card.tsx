@@ -3,16 +3,16 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bill, PaymentStatus } from "@/types/bill-type";
+import { PaymentBill } from "@/api/payment-api";
 import { Clock, Download, CreditCard } from "lucide-react";
 import { format } from "date-fns";
 import { useCallback, useMemo } from "react";
 
 interface BillCardProps {
-  bill: Bill;
-  onViewDetails: (bill: Bill) => void;
-  onPrint: (billId: string) => void;
-  onConfirmPayment: (bill: Bill) => void;
+  bill: PaymentBill;
+  onViewDetails: (bill: PaymentBill) => void;
+  onPrint: (bill: PaymentBill) => void;
+  onConfirmPayment: (bill: PaymentBill) => void;
   isProcessing?: boolean;
 }
 
@@ -23,31 +23,25 @@ export function BillCard({
   onConfirmPayment,
   isProcessing = false,
 }: BillCardProps) {
-  // Get payment status from bill.paymentStatus or bill.status
+  // Get payment status from bill.paymentStatus
   const paymentStatus = useMemo(() => {
-    if (bill.paymentStatus === "success" || bill.status === "completed") {
-      return PaymentStatus.SUCCESS;
-    }
-    if (bill.paymentStatus === "pending" || bill.status === "payment_pending") {
-      return PaymentStatus.PENDING;
-    }
-    return PaymentStatus.PENDING;
-  }, [bill.paymentStatus, bill.status]);
+    return bill.paymentStatus || "pending";
+  }, [bill.paymentStatus]);
 
-  const getStatusColor = useCallback((status: PaymentStatus) => {
-    switch (status) {
-      case PaymentStatus.SUCCESS:
-        return "bg-green-100 text-green-800 border-green-200";
-      case PaymentStatus.PENDING:
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case PaymentStatus.FAILED:
-        return "bg-red-100 text-red-800 border-red-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+  const getStatusColor = useCallback((status: string) => {
+    if (status === "success" || status === "completed") {
+      return "bg-green-100 text-green-800 border-green-200";
     }
+    if (status === "pending" || status === "payment_pending") {
+      return "bg-yellow-100 text-yellow-800 border-yellow-200";
+    }
+    if (status === "failed") {
+      return "bg-red-100 text-red-800 border-red-200";
+    }
+    return "bg-gray-100 text-gray-800 border-gray-200";
   }, []);
 
-  const isPaid = paymentStatus === PaymentStatus.SUCCESS;
+  const isPaid = paymentStatus === "success";
 
   return (
     <Card className="p-4 hover:shadow-md transition-shadow">
@@ -102,7 +96,7 @@ export function BillCard({
           size="sm"
           variant="outline"
           className="flex-1"
-          onClick={() => onPrint(bill.orderId)}
+          onClick={() => onPrint(bill)}
           disabled={isProcessing}
         >
           <Download className="h-3 w-3 mr-2" />
