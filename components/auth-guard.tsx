@@ -2,7 +2,7 @@
 
 import React, { ReactNode, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useAuthCheck } from "@/context/auth-context";
+import { useAuth, useAuthCheck } from "@/context/auth-context";
 import { PATHS } from "@/data/path";
 import Link from "next/link";
 import { isAuthPath, isProtectedPath } from "@/helpers/utils";
@@ -15,7 +15,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
   const { isAuthenticated, isLoading, isUnauthenticated } = useAuthCheck();
-
+  const { user } = useAuth();
   useEffect(() => {
     // Don't redirect while loading
     if (isLoading) return;
@@ -32,8 +32,17 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
 
     // If user is authenticated and trying to access auth pages (login, register)
     if (isAuthenticated && isCurrentPathAuth) {
-      router.push(PATHS.TABLES.INDEX);
-      return;
+      switch (user?.role) {
+        case "admin":
+          router.push(PATHS.TABLES.INDEX);
+          break;
+        case "waiter":
+          router.push(PATHS.WAITER.ORDERS);
+          break;
+        case "kitchen":
+          router.push(PATHS.KITCHEN.INDEX);
+          break;
+      }
     }
   }, [isAuthenticated, isLoading, isUnauthenticated, pathname, router]);
 

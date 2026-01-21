@@ -8,6 +8,7 @@ import {
   DragStartEvent,
   closestCenter,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   useDroppable,
@@ -53,11 +54,11 @@ function LiveClock() {
   }, []);
 
   return (
-    <Card className="bg-slate-900 border-0 py-0">
+    <Card className="bg-slate-900 border-0 py-0 rounded-md">
       <CardContent className="px-4 py-2">
         <div className="flex items-center gap-2 text-white">
           <Clock className="h-4 w-4" />
-          <span className="text-lg font-semibold font-mono">
+          <span className="text-md font-semibold font-mono">
             {currentTime.toLocaleTimeString()}
           </span>
         </div>
@@ -202,6 +203,12 @@ export function KitchenContent() {
         distance: 8,
       },
     }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
+    }),
   );
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
@@ -226,10 +233,11 @@ export function KitchenContent() {
           lastHyphenIndex !== -1
             ? activeIdStr.substring(0, lastHyphenIndex)
             : activeIdStr;
-        const sourceColumnId: KitchenStatus =
-          (lastHyphenIndex !== -1
+        const sourceColumnId: KitchenStatus = (
+          lastHyphenIndex !== -1
             ? activeIdStr.substring(lastHyphenIndex + 1)
-            : "") as KitchenStatus;
+            : ""
+        ) as KitchenStatus;
 
         let newStatus: KitchenStatus | null = null;
 
@@ -412,7 +420,7 @@ export function KitchenContent() {
           columnOrders.some((order) => `${order.id}-${id}` === overId)));
 
     return (
-      <div className="flex flex-col h-full min-w-80 flex-1">
+      <div className="flex flex-col min-h-full min-w-80 flex-1">
         {/* Column Header */}
         <div className="rounded-b-none shadow-sm border-b-0 rounded-t-xl border">
           <CardContent className="p-4">
@@ -482,11 +490,11 @@ export function KitchenContent() {
       {/* KDS Header */}
       <Card className="rounded-none border-0 border-b shadow-sm py-0">
         <CardContent className="px-6 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex md:flex-row flex-col gap-2 items-center justify-between">
             {/* Logo */}
-            <div className="flex items-center gap-3">
+            <div className="md:flex items-center gap-2 hidden">
               <div>
-                <h1 className="text-xl font-bold text-slate-900">
+                <h1 className="text-lg font-bold text-slate-900">
                   Kitchen Display System
                 </h1>
                 <p className="text-xs text-slate-500">
@@ -496,7 +504,7 @@ export function KitchenContent() {
             </div>
 
             {/* Stats */}
-            <div className="flex gap-6">
+            <div className="flex gap-2 md:gap-3 lg:gap-6">
               <div className="text-center">
                 <div className="flex items-center gap-2 mb-1">
                   <Package className="h-4 w-4 text-amber-600" />
