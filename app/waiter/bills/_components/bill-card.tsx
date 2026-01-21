@@ -62,7 +62,9 @@ export function BillCard({
           <div className="flex items-center gap-4 text-sm text-gray-600">
             <div className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              <span>{format(new Date(bill.createdAt), "HH:mm")}</span>
+              <span>
+                {format(new Date(bill.createdAt), "HH:mm, dd/MM/yyyy")}
+              </span>
             </div>
           </div>
         </div>

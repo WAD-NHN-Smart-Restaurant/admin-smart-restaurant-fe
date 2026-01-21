@@ -105,7 +105,6 @@ export const getCurrentUser = async (): Promise<User> => {
 
     return response.data.data.data;
   } catch (error: unknown) {
-    console.error("Get current user error:", error);
     throw error;
   }
 };
