@@ -52,7 +52,7 @@ export const paymentQueryKeys = {
 // Hook to get completed payments (for Bills page)
 export const useGetCompletedPayments = (
   page: number = 1,
-  limit: number = 50,
+  limit: number = 100,
 ) => {
   const queryKey = useMemo(
     () => paymentQueryKeys.completed(page, limit),
@@ -257,6 +257,11 @@ export const useAcceptPayment = () => {
       onSuccess: () => {
         // Invalidate all bill queries to refresh everything
         queryClient.invalidateQueries({ queryKey: billQueryKeys.all });
+        queryClient.invalidateQueries({ queryKey: paymentQueryKeys.all });
+        queryClient.invalidateQueries({ queryKey: paymentQueryKeys.pending() });
+        queryClient.invalidateQueries({
+          queryKey: paymentQueryKeys.completed(),
+        });
       },
     },
   );
@@ -274,6 +279,11 @@ export const useConfirmPayment = () => {
       onSuccess: () => {
         // Invalidate all bill queries to refresh everything
         queryClient.invalidateQueries({ queryKey: billQueryKeys.all });
+        queryClient.invalidateQueries({ queryKey: paymentQueryKeys.all });
+        queryClient.invalidateQueries({ queryKey: paymentQueryKeys.pending() });
+        queryClient.invalidateQueries({
+          queryKey: paymentQueryKeys.completed(),
+        });
       },
     },
   );

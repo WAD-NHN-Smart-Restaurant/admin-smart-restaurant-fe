@@ -14,9 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Authentication System",
-  description:
-    "Secure authentication system with JWT tokens and protected routes",
+  title: "Restaurant System",
+  description: "Smart restaurant system management dashboard",
 };
 
 export default function RootLayout({

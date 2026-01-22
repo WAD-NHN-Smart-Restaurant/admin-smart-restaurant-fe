@@ -230,6 +230,8 @@ export const useWaiterSocketListeners = (
         queryClient.refetchQueries({
           queryKey: waiterQueryKeys.orders(),
         });
+        const audio = new Audio("/sounds/noti.wav");
+        audio.play().catch((err) => console.error("Error playing sound:", err));
         // Notify parent about unseen updates in pending tab
         onUnseenUpdate?.(["pending"]);
       },
@@ -244,6 +246,8 @@ export const useWaiterSocketListeners = (
         queryClient.refetchQueries({
           queryKey: [...waiterQueryKeys.orders(), "infinite"],
         });
+        const audio = new Audio("/sounds/noti.wav");
+        audio.play().catch((err) => console.error("Error playing sound:", err));
         // Notify parent about unseen updates in ready tab
         onUnseenUpdate?.(["ready"]);
       },
