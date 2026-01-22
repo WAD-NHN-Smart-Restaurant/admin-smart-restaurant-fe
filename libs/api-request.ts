@@ -6,7 +6,8 @@ import Cookies from "js-cookie";
 // Token storage keys
 const ACCESS_TOKEN_KEY = "access_token";
 const UNAUTHORIZED_STATUS = 401;
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_HOSTNAME || "http://localhost:3001";
 
 // Create axios instance
 const axiosInstance = axios.create({
